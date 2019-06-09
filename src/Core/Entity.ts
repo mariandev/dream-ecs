@@ -4,7 +4,7 @@ import {InternalWorld} from "./InternalWorld";
 export class Entity {
     public readonly Id = EntityIdGen.Gen;
 
-    public readonly Components: {[component: string]: Component} = {};
+    public readonly Components: {[component: string]: Component<any>} = {};
     public readonly AttachedComponents: Set<ComponentName> = new Set();
 
     public readonly JustAddedComponents: {
@@ -25,7 +25,7 @@ export class Entity {
 
     constructor(private readonly _world: InternalWorld) {}
 
-    public AddComponent(component: Component): this {
+    public AddComponent(component: Component<any>): this {
         this.__AddComponent(component);
 
         this._world.OnComponentAdded(this, component);
@@ -44,7 +44,7 @@ export class Entity {
         return this;
     }
 
-    public __AddComponent(component: Component) {
+    public __AddComponent(component: Component<any>) {
         this.AttachedComponents.add(component.constructor.name);
         this.Components[component.constructor.name] = component;
 
@@ -66,7 +66,7 @@ export class Entity {
         return this.Components[component.name] as (T extends {new (...args: any[]): Component<infer U>} ? Component<U> : any);
     }
 
-    public AdvanceJustAddedAndRemoved() {
+    public AdvanceToNextStep() {
         this.JustAddedComponents.now = this.JustAddedComponents.next;
         this.JustAddedComponents.next = new Set();
 

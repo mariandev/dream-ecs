@@ -3,10 +3,10 @@ import {Entity} from "../Entity";
 
 export class JustAdded extends Condition {
     Evaluate(entity: Entity): boolean {
-        return entity.JustAddedComponents.now.has(this.component.name);
+        return this.components.every(c => entity.JustAddedComponents.now.has(c.name));
     }
 
     Hash() {
-        return `JustAdded(${this.component.name})`;
+        return `JustAdded(${this.components.map(c => c.name).join(", ")})`;
     }
 }

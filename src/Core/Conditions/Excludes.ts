@@ -3,10 +3,10 @@ import {Entity} from "../Entity";
 
 export class Excludes extends Condition {
     Evaluate(entity: Entity): boolean {
-        return !entity.AttachedComponents.has(this.component.name);
+        return this.components.every(c => !entity.AttachedComponents.has(c.name));
     }
 
     Hash() {
-        return `Excludes(${this.component.name})`;
+        return `Excludes(${this.components.map(c => c.name).join(", ")})`;
     }
 }

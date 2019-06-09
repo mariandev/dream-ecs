@@ -49,6 +49,7 @@ module.exports = {
 			cleanOnceBeforeBuildPatterns: [],
 			cleanAfterEveryBuildPatterns: [
 				"./*",
+				"./**",
 				"!./dream-ecs.*"
 			]
 		})

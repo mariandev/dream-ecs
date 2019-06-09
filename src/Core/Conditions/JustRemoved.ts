@@ -3,10 +3,10 @@ import {Entity} from "../Entity";
 
 export class JustRemoved extends Condition {
     Evaluate(entity: Entity): boolean {
-        return entity.JustRemovedComponents.now.has(this.component.name);
+        return this.components.every(c => entity.JustRemovedComponents.now.has(c.name));
     }
 
     Hash() {
-        return `JustRemoved(${this.component.name})`;
+        return `JustRemoved(${this.components.map(c => c.name).join(", ")})`;
     }
 }

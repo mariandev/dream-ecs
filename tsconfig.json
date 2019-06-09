@@ -7,7 +7,7 @@
     "removeComments": true,
     "sourceMap": false,
     "declaration": true,
-    "lib": ["dom", "es5"],
+    "lib": ["dom", "es5", "esnext", "esnext.array"],
     "baseUrl": "./src",
     "downlevelIteration": true
   },
@@ -15,6 +15,6 @@
     "node_modules"
   ],
   "files": [
-    "./src/index.ts"
+    "./src/Core/index.ts"
   ]
 }

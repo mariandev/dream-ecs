@@ -3,7 +3,7 @@ import {Component, ComponentName} from "./Component";
 import {IWorld} from "./IWorld";
 
 export class EntityCommandBuffer {
-    private _addComponent: {ids: EntityId[], components: Component[]} = {
+    private _addComponent: {ids: EntityId[], components: Component<any>[]} = {
         ids: [],
         components: []
     };
@@ -14,7 +14,7 @@ export class EntityCommandBuffer {
 
     constructor(private readonly _world: IWorld) {}
 
-    public AddComponent(entityId: EntityId, component: Component): this {
+    public AddComponent(entityId: EntityId, component: Component<any>): this {
         this._addComponent.ids.push(entityId);
         this._addComponent.components.push(component);
         return this;
@@ -39,7 +39,7 @@ export class EntityCommandBuffer {
         }
     }
 
-    public GetAddedComponents(): Iterable<Component> {
+    public GetAddedComponents(): Iterable<Component<any>> {
         return this._addComponent.components.values();
     }
 
@@ -47,11 +47,11 @@ export class EntityCommandBuffer {
         return this._removeComponent.components.values();
     }
 
-    public Clear() {
-        this._addComponent.ids.length = 0;
-        this._addComponent.components.length = 0;
-
-        this._removeComponent.ids.length = 0;
-        this._removeComponent.components.length = 0;
-    }
+    // public Clear() {
+    //     this._addComponent.ids.length = 0;
+    //     this._addComponent.components.length = 0;
+    //
+    //     this._removeComponent.ids.length = 0;
+    //     this._removeComponent.components.length = 0;
+    // }
 }

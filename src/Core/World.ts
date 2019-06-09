@@ -11,7 +11,7 @@ export class World implements IWorld {
         this._internalWorld = new InternalWorld();
     }
 
-    public CreateEntity(...components: Component[]) {
+    public CreateEntity(...components: Component<any>[]) {
         return this._internalWorld.CreateEntity(...components);
     }
 
