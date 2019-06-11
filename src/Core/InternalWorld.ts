@@ -1,7 +1,7 @@
 import {IWorld} from "./IWorld";
 import {Entity, EntityId} from "./Entity";
 import {Query, QueryConditions, QueryHash} from "./Query";
-import {Component, ComponentName} from "./Component";
+import {Component, ComponentCtor, ComponentName} from "./Component";
 import {System} from "./System";
 import {EntityCommandBuffer} from "./EntityCommandBuffer";
 
@@ -25,17 +25,17 @@ export class InternalWorld implements IWorld {
         this._loop();
     }
 
-    public CreateEntity(...components: Component<any>[]) {
+    public CreateEntity(...components: [ComponentCtor<unknown>, unknown][]) {
         const entity = new Entity(this);
 
         this._entities.set(entity.Id, entity);
 
         const queriesHashes: QueryHash[] = [];
-        for(const component of components) {
-            entity.__AddComponent(component);
+        for(const [component, value] of components) {
+            entity.__AddComponent(component, value);
 
-            if(this._queriesByComponent.has(component.constructor.name)) {
-                queriesHashes.push(...this._queriesByComponent.get(component.constructor.name));
+            if(this._queriesByComponent.has(component.name)) {
+                queriesHashes.push(...this._queriesByComponent.get(component.name));
 
             }
         }
@@ -97,20 +97,20 @@ export class InternalWorld implements IWorld {
         this._systems.push(new system(this));
     }
 
-    public OnComponentAdded(entity: Entity, component: Component<any>) {
+    public OnComponentAdded(entity: Entity, component: ComponentCtor<unknown>) {
         // Recalculate entities for queries
-        if(this._queriesByComponent.has(component.constructor.name)) {
+        if(this._queriesByComponent.has(component.name)) {
             this._queriesByComponent
-                .get(component.constructor.name)
+                .get(component.name)
                 .map(hash => this._queries.get(hash))
                 .forEach(query => this.RecalculateEntitiesForQuery(query));
         }
     }
-    public OnComponentRemoved(entity: Entity, component: Component<any>) {
+    public OnComponentRemoved(entity: Entity, component: ComponentCtor<unknown>) {
         // Recalculate entities for queries
-        if(this._queriesByComponent.has(component.constructor.name)) {
+        if(this._queriesByComponent.has(component.name)) {
             this._queriesByComponent
-                .get(component.constructor.name)
+                .get(component.name)
                 .map(hash => this._queries.get(hash))
                 .forEach(query => this.RecalculateEntitiesForQuery(query));
         }
@@ -187,11 +187,11 @@ export class InternalWorld implements IWorld {
         const queriesHashes: Set<QueryHash> = new Set();
 
         for(const component of ecb.GetAddedComponents()) {
-            this.GetQueriesByComponent(component.constructor.name).map(q => queriesHashes.add(q));
+            this.GetQueriesByComponent(component.name).map(q => queriesHashes.add(q));
         }
 
         for(const component of ecb.GetRemovedComponents()) {
-            this.GetQueriesByComponent(component).map(q => queriesHashes.add(q));
+            this.GetQueriesByComponent(component.name).map(q => queriesHashes.add(q));
         }
 
         return queriesHashes;

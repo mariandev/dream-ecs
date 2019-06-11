@@ -1,9 +1,9 @@
 import {Entity, EntityId} from "./Entity";
 import {System} from "./System";
-import {Component} from "./Component";
+import {Component, ComponentCtor} from "./Component";
 
 export interface IWorld {
-    CreateEntity(...components: Component<any>[]): Entity;
+    CreateEntity(...components: [ComponentCtor<unknown>, unknown][]): Entity;
     DestroyEntity(entity: Entity): void;
     GetEntity(entityId: EntityId): Entity;
 

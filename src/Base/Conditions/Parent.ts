@@ -7,7 +7,7 @@ export class Parent extends Condition {
     }
 
     Evaluate(entity: Entity): boolean {
-        return entity.HasComponent(ParentComponent) && this.condition.Evaluate(entity.GetComponent(ParentComponent).ValueUnsafe);
+        return entity.HasComponent(ParentComponent) && this.condition.Evaluate(entity.GetComponent(ParentComponent) as any);
     }
 
     Hash(): string {

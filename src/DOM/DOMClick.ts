@@ -3,44 +3,42 @@ import {EntityCommandBuffer} from "../Core/EntityCommandBuffer";
 import {DOMElementComponent} from "./DOMElement";
 import {All, Any} from "../Base/Conditions";
 
-export class DOMTrackClickComponent extends Component<{capture?: boolean, stopPropagation?: boolean, preventDefault?: boolean}> {
-    constructor({capture = false, stopPropagation = false, preventDefault = false} = {}) {
-        super({capture, stopPropagation, preventDefault})
-    }
-}
+export class DOMTrackClickComponent extends TagComponent {}
+export class DOMTrackClickUseCaptureComponent extends TagComponent {}
+export class DOMTrackClickStopPropagationComponent extends TagComponent {}
+export class DOMTrackClickPreventDefaultComponent extends TagComponent {}
 export class DOMClickedComponent extends Component<MouseEvent> {}
-export class DOMClickListenerComponent extends Component<{listener: (e: MouseEvent) => void}> {}
+export class DOMClickListenerComponent extends Component<(e: MouseEvent) => void> {}
 
 export class DOMTrackClickEventSystem extends System {
     QueryConditions(): ReadonlyArray<Condition> {
         return [
+            new Includes(DOMElementComponent),
+            new Includes(DOMTrackClickComponent),
             new Any(
-                new All(
-                    new Includes(DOMElementComponent),
-                    new JustAdded(DOMTrackClickComponent)
-                ),
-                new All(
-                    new JustAdded(DOMElementComponent),
-                    new Includes(DOMTrackClickComponent)
-                )
+                new JustAdded(DOMElementComponent),
+                new JustAdded(DOMTrackClickComponent),
             )
         ];
     }
 
     Execute(ecb: EntityCommandBuffer) {
         for (const entity of this.GetEntities()) {
-            const el = entity.GetComponent(DOMElementComponent).Value;
-            const config = entity.GetComponent(DOMTrackClickComponent).ValueUnsafe;
+            const el = entity.GetComponent(DOMElementComponent);
+
+            const stopPropagation = entity.HasComponent(DOMTrackClickStopPropagationComponent);
+            const preventDefault = entity.HasComponent(DOMTrackClickPreventDefaultComponent);
+            const useCapture = entity.HasComponent(DOMTrackClickUseCaptureComponent);
 
             const listener = (e: MouseEvent) => {
-                if(config.stopPropagation) e.stopPropagation();
-                if(config.preventDefault) e.preventDefault();
-                entity.AddComponent(new DOMClickedComponent(e));
+                if(stopPropagation) e.stopPropagation();
+                if(preventDefault) e.preventDefault();
+                entity.AddComponent(DOMClickedComponent, "");
             };
 
-            ecb.AddComponent(entity.Id, new DOMClickListenerComponent({listener}));
+            ecb.AddComponent(entity.Id, DOMClickListenerComponent, listener);
 
-            el.addEventListener("click", listener, config.capture);
+            el.addEventListener("click", listener, useCapture);
         }
     }
 }
@@ -56,15 +54,15 @@ export class DOMUntrackClickEventSystem extends System {
 
     Execute(ecb: EntityCommandBuffer) {
         for (const entity of this.GetEntities()) {
-            const el = entity.GetComponent(DOMElementComponent).Value;
-            const listener = entity.GetComponent(DOMClickListenerComponent).Value.listener;
+            const el = entity.GetComponent(DOMElementComponent);
+            const listener = entity.GetComponent(DOMClickListenerComponent);
 
             el.removeEventListener("click", listener);
             el.removeEventListener("click", listener, true);
 
             ecb
-                .RemoveComponent(entity.Id, DOMClickedComponent.constructor.name)
-                .RemoveComponent(entity.Id, DOMClickListenerComponent.constructor.name);
+                .RemoveComponent(entity.Id, DOMClickedComponent)
+                .RemoveComponent(entity.Id, DOMClickListenerComponent);
         }
     }
 }

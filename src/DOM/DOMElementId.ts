@@ -20,8 +20,8 @@ export class DOMElementIdSystem extends System {
 
     Execute(ecb: EntityCommandBuffer) {
         for(const entity of this.GetEntities()) {
-            const el = entity.GetComponent(DOMElementComponent).Value;
-            const id = entity.GetComponent(DOMElementIdComponent).Value;
+            const el = entity.GetComponent(DOMElementComponent);
+            const id = entity.GetComponent(DOMElementIdComponent);
 
             el.setAttribute("id", id);
         }

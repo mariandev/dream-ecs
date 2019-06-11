@@ -1,14 +1,9 @@
 export type ComponentName = string;
-export class Component<T extends any, U extends T = any> {
-    public readonly ValueUnsafe: T;
-    public get Value() {
-        return this.ValueUnsafe as unknown as (U extends object ? Readonly<T> : T);
-    };
 
-    constructor(value: T) {
-        this.ValueUnsafe = value;
-    }
+export type ComponentCtor<T> = { new (): Component<T> };
+export type ComponentValue<T> = T extends ComponentCtor<infer U> ? U : unknown;
 
+export abstract class Component<T extends unknown> {
     public static new<T>(name: string) {
         const ctor = class extends Component<T> {};
 
@@ -23,8 +18,4 @@ export class Component<T extends any, U extends T = any> {
     }
 }
 
-export class TagComponent extends Component<null> {
-    constructor() {
-        super(null);
-    }
-}
+export class TagComponent extends Component<void> {}

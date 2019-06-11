@@ -1,10 +1,10 @@
-import {Component, ComponentName} from "./Component";
+import {Component, ComponentCtor, ComponentName, ComponentValue} from "./Component";
 import {InternalWorld} from "./InternalWorld";
 
 export class Entity {
     public readonly Id = EntityIdGen.Gen;
 
-    public readonly Components: {[component: string]: Component<any>} = {};
+    public readonly Components: {[component: string]: unknown} = {};
     public readonly AttachedComponents: Set<ComponentName> = new Set();
 
     public readonly JustAddedComponents: {
@@ -25,45 +25,43 @@ export class Entity {
 
     constructor(private readonly _world: InternalWorld) {}
 
-    public AddComponent(component: Component<any>): this {
-        this.__AddComponent(component);
+    public AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>): this {
+        this.__AddComponent<T>(component, value);
 
         this._world.OnComponentAdded(this, component);
 
         return this;
     }
-    public RemoveComponent(componentName: ComponentName): this {
-        if(typeof this.Components[componentName] === "undefined") return this;
+    public RemoveComponent<T extends ComponentCtor<unknown>>(component: T): this {
+        if(typeof this.Components[component.name] === "undefined") return this;
 
-        const component = this.Components[componentName];
+        const componentValue = this.Components[component.name];
 
-        this.__RemoveComponent(componentName);
+        this.__RemoveComponent(component);
 
-        this._world.OnComponentRemoved(this, component);
+        this._world.OnComponentRemoved(this, componentValue);
 
         return this;
     }
 
-    public __AddComponent(component: Component<any>) {
-        this.AttachedComponents.add(component.constructor.name);
-        this.Components[component.constructor.name] = component;
+    public __AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) {
+        this.AttachedComponents.add(component.name);
+        this.Components[component.name] = value;
 
-        this.JustAddedComponents.next.add(component.constructor.name);
+        this.JustAddedComponents.next.add(component.name);
+    }
+    public __RemoveComponent(component: ComponentCtor<unknown>) {
+        this.AttachedComponents.delete(component.name);
+        delete this.Components[component.name];
+
+        this.JustRemovedComponents.next.add(component.name);
     }
 
-    public __RemoveComponent(componentName: ComponentName) {
-        this.AttachedComponents.delete(componentName);
-        delete this.Components[componentName];
-
-        this.JustRemovedComponents.next.add(componentName);
-    }
-
-    public HasComponent(component: Function): boolean {
+    public HasComponent<T extends ComponentCtor<unknown>>(component: T): boolean {
         return typeof this.Components[component.name] !== "undefined";
     }
-
-    public GetComponent<T extends any>(component: T) {
-        return this.Components[component.name] as (T extends {new (...args: any[]): Component<infer U>} ? Component<U> : any);
+    public GetComponent<T extends ComponentCtor<unknown>>(component: T) {
+        return this.Components[component.name] as any;
     }
 
     public AdvanceToNextStep() {

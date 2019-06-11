@@ -37,23 +37,23 @@ export class DOMRendererSystem extends System {
         const elComp = entity.GetComponent(DOMElementComponent);
 
         if (elComp) {
-            return elComp.Value;
+            return elComp;
         } else {
-            const elDef = entity.GetComponent(DOMRendererComponent).Value;
-            const parent = entity.GetComponent(ParentComponent).Value;
-            const parentEl = parent.GetComponent(DOMElementComponent).Value;
+            const elDef = entity.GetComponent(DOMRendererComponent);
+            const parent = entity.GetComponent(ParentComponent);
+            const parentEl = parent.GetComponent(DOMElementComponent);
 
             const el = document.createElement(elDef);
             parentEl.appendChild(el);
 
-            ecb.AddComponent(entity.Id, new DOMElementComponent(el));
+            ecb.AddComponent(entity.Id, DOMElementComponent, el);
 
             return el;
         }
     }
 
     private SetPosition(entity: Entity, el: HTMLElement) {
-        const position = entity.GetComponent(PositionComponent).Value;
+        const position = entity.GetComponent(PositionComponent);
 
         el.style.position = "absolute";
         el.style.left = position.x + "px";
@@ -61,7 +61,7 @@ export class DOMRendererSystem extends System {
     }
 
     private SetSize(entity: Entity, el: HTMLElement) {
-        const size = entity.GetComponent(SizeComponent).Value;
+        const size = entity.GetComponent(SizeComponent);
 
         el.style.width = size.x + "px";
         el.style.height = size.y + "px";
