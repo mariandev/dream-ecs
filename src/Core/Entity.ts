@@ -1,4 +1,4 @@
-import {Component, ComponentCtor, ComponentName, ComponentValue} from "./Component";
+import {ComponentCtor, ComponentName, ComponentValue} from "./Component";
 import {InternalWorld} from "./InternalWorld";
 
 export class Entity {
@@ -35,11 +35,9 @@ export class Entity {
     public RemoveComponent<T extends ComponentCtor<unknown>>(component: T): this {
         if(typeof this.Components[component.name] === "undefined") return this;
 
-        const componentValue = this.Components[component.name];
-
         this.__RemoveComponent(component);
 
-        this._world.OnComponentRemoved(this, componentValue);
+        this._world.OnComponentRemoved(this, component);
 
         return this;
     }
@@ -61,7 +59,7 @@ export class Entity {
         return typeof this.Components[component.name] !== "undefined";
     }
     public GetComponent<T extends ComponentCtor<unknown>>(component: T) {
-        return this.Components[component.name] as any;
+        return this.Components[component.name] as ComponentValue<T>;
     }
 
     public AdvanceToNextStep() {

@@ -1,11 +1,12 @@
 import {Component, Includes, JustAdded, System, World} from "./Core";
 import {
     DOMClickedComponent,
-    DOMElementComponent, DOMElementIdComponent, DOMTrackClickComponent,
+    DOMElementComponent,
+    DOMElementIdComponent,
+    DOMRendererComponent,
     RegisterDOMSystems
 } from "./DOM";
 import {ParentComponent, PositionComponent, SizeComponent} from "./Base/Components";
-import {DOMRendererComponent} from "./DOM/DOMRenderer";
 
 export * from "./Core";
 export * from "./Base/Conditions";

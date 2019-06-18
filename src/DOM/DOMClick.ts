@@ -33,7 +33,7 @@ export class DOMTrackClickEventSystem extends System {
             const listener = (e: MouseEvent) => {
                 if(stopPropagation) e.stopPropagation();
                 if(preventDefault) e.preventDefault();
-                entity.AddComponent(DOMClickedComponent, "");
+                entity.AddComponent(DOMClickedComponent, e);
             };
 
             ecb.AddComponent(entity.Id, DOMClickListenerComponent, listener);
