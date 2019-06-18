@@ -1,7 +1,7 @@
 import {IWorld} from "./IWorld";
 import {Entity, EntityId} from "./Entity";
 import {Query, QueryConditions, QueryHash} from "./Query";
-import {Component, ComponentCtor, ComponentName} from "./Component";
+import {Component, ComponentCtor, ComponentName, ComponentValue} from "./Component";
 import {System} from "./System";
 import {EntityCommandBuffer} from "./EntityCommandBuffer";
 
@@ -25,27 +25,40 @@ export class InternalWorld implements IWorld {
         this._loop();
     }
 
-    public CreateEntity(...components: [ComponentCtor<unknown>, unknown][]) {
+    public EntityBuilder() {
         const entity = new Entity(this);
+        const queriesHashes: QueryHash[] = [];
 
         this._entities.set(entity.Id, entity);
 
-        const queriesHashes: QueryHash[] = [];
-        for(const [component, value] of components) {
-            entity.__AddComponent(component, value);
+        const entityBuilder = {
+            AddComponent: <T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) => {
+                entity.__AddComponent(component, value);
 
-            if(this._queriesByComponent.has(component.name)) {
-                queriesHashes.push(...this._queriesByComponent.get(component.name));
+                if(this._queriesByComponent.has(component.name)) {
+                    queriesHashes.push(...this._queriesByComponent.get(component.name));
+                }
 
+                return entityBuilder;
+            },
+            AddRawComponents: (components: [ComponentCtor<unknown>, unknown][]) => {
+                for (let [component, value] of components) {
+                    entityBuilder.AddComponent(component, value);
+                }
+
+                return entityBuilder;
+            },
+            Create: () => {
+                for (const query of new Set(queriesHashes)) {
+                    this.RecalculateEntitiesForQuery(this._queries.get(query));
+                }
+
+                return entity;
             }
-        }
-
-        for (const query of new Set(queriesHashes)) {
-            this.RecalculateEntitiesForQuery(this._queries.get(query));
-        }
-
-        return entity;
+        };
+        return entityBuilder;
     }
+
     public DestroyEntity(entity: Entity) {
         const queries = new Set<Query>();
 

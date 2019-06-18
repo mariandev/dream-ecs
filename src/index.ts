@@ -50,30 +50,34 @@ world.RegisterSystem(System.new(
 ));
 
 window.addEventListener("load", () => {
-    const creative = world.CreateEntity(
-        [DOMElementIdComponent, "creative"],
-        [DOMElementComponent, document.body],
-    );
+    const creative = world.EntityBuilder()
+        .AddComponent(DOMElementIdComponent, "creative2")
+        .AddComponent(DOMElementComponent, document.body)
+        .Create();
 
-    const shape = world.CreateEntity(
-        [ParentComponent, creative],
-        [DOMElementIdComponent, "shape1"],
-        [DOMRendererComponent, "div"],
-        [PositionComponent, {x: 200, y: 200}],
-        [SizeComponent, {x: 50, y: 100}],
-    );
+    const shape = world.EntityBuilder()
+        .AddRawComponents([
+            [ParentComponent, creative],
+            [DOMElementIdComponent, "shape1"],
+            [DOMRendererComponent, "div"],
+            [PositionComponent, {x: 200, y: 200}],
+            [SizeComponent, {x: 50, y: 100}],
+        ])
+        .Create();
 
     const w = innerWidth, h = innerHeight;
     document.body.addEventListener("click", () => {
         for(let i = 0; i < 100; i++) {
-            world.CreateEntity(
-                [ParentComponent, creative],
-                [DOMElementIdComponent, "shape1"],
-                [DOMRendererComponent, "div"],
-                [PositionComponent, {x: Math.random() * w, y: Math.random() * h}],
-                [SizeComponent, {x: Math.random() * w, y: Math.random() * h}],
-                [RainbowComponent, 0]
-            )
+            world.EntityBuilder()
+                .AddRawComponents([
+                    [ParentComponent, creative],
+                    [DOMElementIdComponent, "shape1"],
+                    [DOMRendererComponent, "div"],
+                    [PositionComponent, {x: Math.random() * w, y: Math.random() * h}],
+                    [SizeComponent, {x: Math.random() * w, y: Math.random() * h}],
+                    [RainbowComponent, 0]
+                ])
+                .Create();
         }
     });
 });

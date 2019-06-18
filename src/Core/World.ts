@@ -2,7 +2,6 @@ import {Entity} from "./Entity";
 import {IWorld} from "./IWorld";
 import {InternalWorld} from "./InternalWorld";
 import {System} from "./System";
-import {Component, ComponentCtor} from "./Component";
 
 export class World implements IWorld {
     private readonly _internalWorld: IWorld;
@@ -11,8 +10,8 @@ export class World implements IWorld {
         this._internalWorld = new InternalWorld();
     }
 
-    public CreateEntity(...components: [ComponentCtor<unknown>, unknown][]) {
-        return this._internalWorld.CreateEntity(...components);
+    public EntityBuilder() {
+        return this._internalWorld.EntityBuilder();
     }
 
     public DestroyEntity(entity: Entity) {
