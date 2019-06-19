@@ -1,13 +1,25 @@
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const path = require("path");
+const TerserPlugin = require('terser-webpack-plugin');
+
+const dev = !process.env.PROD;
+const mode = dev ? "development" : "production";
+const devtool = dev ? "inline-source-map" : false;
+const minimize = !dev;
 
 module.exports = {
-	mode: "development",
-	devtool: "inline-source-map",
+	mode,
+	devtool,
 	entry: './src/index.ts',
 	optimization: {
-		minimize: false,
+		minimize,
+		minimizer: [new TerserPlugin({
+			terserOptions: {
+				keep_classnames: true,
+				keep_fnames: true,
+			}
+		})],
 		concatenateModules: true,
 		flagIncludedChunks: true
 	},
