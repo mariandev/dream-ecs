@@ -1,4 +1,4 @@
-import {Entity, EntityId} from "./Entity";
+import {EntityId} from "./Entity";
 import {ComponentCtor, ComponentValue} from "../Component";
 import {InternalWorld, IWorldNewEntityReturnType} from "../World";
 
@@ -14,7 +14,7 @@ export class EntityCommandBuffer {
     };
 
     private _createEntity: (IWorldNewEntityReturnType["Create"])[] = [];
-    private _removeEntity: EntityId[];
+    private _removeEntity: EntityId[] = [];
 
     constructor(private readonly _world: InternalWorld) {}
 
@@ -73,12 +73,4 @@ export class EntityCommandBuffer {
     public GetRemovedComponents(): Iterable<ComponentCtor<unknown>> {
         return this._removeComponent.components.values();
     }
-
-    // public Clear() {
-    //     this._addComponent.ids.length = 0;
-    //     this._addComponent.components.length = 0;
-    //
-    //     this._removeComponent.ids.length = 0;
-    //     this._removeComponent.components.length = 0;
-    // }
 }

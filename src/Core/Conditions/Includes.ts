@@ -1,9 +1,9 @@
 import {Condition} from "./Condition";
-import {Entity} from "../Entity/Entity";
+import {Entity} from "../Entity";
 
 export class Includes extends Condition {
     Evaluate(entity: Entity): boolean {
-        return this.components.every(c => entity.AttachedComponents.has(c.name));
+        return this.components.every(c => entity.HasComponent(c));
     }
 
     Hash() {

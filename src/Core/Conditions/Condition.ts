@@ -1,9 +1,10 @@
-import {Entity} from "../Entity/Entity";
+import {Entity} from "../Entity";
+import {ComponentCtor} from '../Component';
 
 export abstract class Condition {
-    public components: Function[];
+    public components: ComponentCtor<unknown>[];
 
-    constructor(...components: Function[]) {
+    constructor(...components: ComponentCtor<unknown>[]) {
         this.components = components;
     }
 

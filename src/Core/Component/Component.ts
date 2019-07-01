@@ -7,7 +7,7 @@ export abstract class Component<T extends any> {
     // Source: https://stackoverflow.com/a/55887088
     public _fixYourShitTypescript: T = undefined as unknown as T;
 
-    public static new<T>(name: string) {
+    public static new<T = void>(name: string) {
         const ctor = class extends Component<T> {};
 
         Object.defineProperty(ctor, "name", {

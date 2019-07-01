@@ -1,11 +1,10 @@
-import {ComponentCtor, ComponentName, ComponentValue} from "../Component/Component";
-import {InternalWorld} from "../World/InternalWorld";
+import {ComponentCtor, ComponentName, ComponentValue} from "../Component";
+import {InternalWorld} from "../World";
 
 export class Entity {
     public readonly Id = EntityIdGen.Gen;
 
     public readonly Components: {[component: string]: unknown} = {};
-    public readonly AttachedComponents: Set<ComponentName> = new Set();
 
     public readonly JustAddedComponents: {
         now: Set<ComponentName>,
@@ -26,9 +25,11 @@ export class Entity {
     constructor(private readonly _world: InternalWorld) {}
 
     public AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>): this {
+        const alreadyHadTheComponent = this.HasComponent(component);
+
         this.__AddComponent<T>(component, value);
 
-        this._world.OnComponentAdded(this, component);
+        if(alreadyHadTheComponent) this._world.OnComponentAdded(this, component);
 
         return this;
     }
@@ -43,13 +44,11 @@ export class Entity {
     }
 
     public __AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) {
-        this.AttachedComponents.add(component.name);
         this.Components[component.name] = value;
 
         this.JustAddedComponents.next.add(component.name);
     }
     public __RemoveComponent(component: ComponentCtor<unknown>) {
-        this.AttachedComponents.delete(component.name);
         delete this.Components[component.name];
 
         this.JustRemovedComponents.next.add(component.name);
