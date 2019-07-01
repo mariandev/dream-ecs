@@ -1,22 +1,22 @@
-import {ComponentCtor, ComponentName, ComponentValue} from "../Component";
+import {ComponentCtor, ComponentId, ComponentValue} from "../Component";
 import {InternalWorld} from "../World";
 
 export class Entity {
     public readonly Id = EntityIdGen.Gen;
 
-    public readonly Components: {[component: string]: unknown} = {};
+    public readonly Components = new Map<ComponentId, unknown>();
 
     public readonly JustAddedComponents: {
-        now: Set<ComponentName>,
-        next: Set<ComponentName>
+        now: Set<ComponentId>,
+        next: Set<ComponentId>
     } = {
         now: new Set(),
         next: new Set()
     };
 
     public readonly JustRemovedComponents: {
-        now: Set<ComponentName>,
-        next: Set<ComponentName>
+        now: Set<ComponentId>,
+        next: Set<ComponentId>
     } = {
         now: new Set(),
         next: new Set()
@@ -34,7 +34,7 @@ export class Entity {
         return this;
     }
     public RemoveComponent<T extends ComponentCtor<unknown>>(component: T): this {
-        if(typeof this.Components[component.name] === "undefined") return this;
+        if(typeof this.Components[component.Id] === "undefined") return this;
 
         this.__RemoveComponent(component);
 
@@ -44,21 +44,21 @@ export class Entity {
     }
 
     public __AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) {
-        this.Components[component.name] = value;
+        this.Components[component.Id] = value;
 
-        this.JustAddedComponents.next.add(component.name);
+        this.JustAddedComponents.next.add(component.Id);
     }
     public __RemoveComponent(component: ComponentCtor<unknown>) {
-        delete this.Components[component.name];
+        delete this.Components[component.Id];
 
-        this.JustRemovedComponents.next.add(component.name);
+        this.JustRemovedComponents.next.add(component.Id);
     }
 
     public HasComponent<T extends ComponentCtor<unknown>>(component: T): boolean {
-        return typeof this.Components[component.name] !== "undefined";
+        return typeof this.Components[component.Id] !== "undefined";
     }
     public GetComponent<T extends ComponentCtor<unknown>>(component: T) {
-        return this.Components[component.name] as ComponentValue<T>;
+        return this.Components[component.Id] as ComponentValue<T>;
     }
 
     public AdvanceToNextStep() {

@@ -1,16 +1,16 @@
 import {Component, Entity, Excludes, Includes, System, TagComponent, World} from "./Core";
 import {PositionComponent, SizeComponent} from './Sizes/Components';
 
-const ParticleEmitterComponent = Component.new<{particles: number}>("ParticleEmitterComponent");
-const ParticleEmitterInitializedComponent = Component.new("ParticleEmitterInitializedComponent");
-const ParticleRenderContextComponent = Component.new<CanvasRenderingContext2D>("ParticleRenderContextComponent");
-const InitialPositionComponent = Component.new<{x: number, y: number}>("InitialPositionComponent");
-const VelocityComponent = Component.new<{x: number, y: number}>("VelocityComponent");
-const SpeedComponent = Component.new<{x: number, y: number}>("SpeedComponent");
-const LifetimeComponent = Component.new<number>("LifetimeComponent");
-const ColorComponent = Component.new<number>("ColorComponent");
-const ParticleGroupByColor = Component.new<{color: string, particles: Entity[]}>("ParticleGroupByColor");
-const ParticleInColorGroup = TagComponent.new("ParticleInColorGroup");
+const ParticleEmitterComponent = Component.new<{particles: number}>();
+const ParticleEmitterInitializedComponent = Component.new();
+const ParticleRenderContextComponent = Component.new<CanvasRenderingContext2D>();
+const InitialPositionComponent = Component.new<{x: number, y: number}>();
+const VelocityComponent = Component.new<{x: number, y: number}>();
+const SpeedComponent = Component.new<{x: number, y: number}>();
+const LifetimeComponent = Component.new<number>();
+const ColorComponent = Component.new<number>();
+const ParticleGroupByColor = Component.new<{color: string, particles: Entity[]}>();
+const ParticleInColorGroup = TagComponent.new();
 
 export const world = new World();
 

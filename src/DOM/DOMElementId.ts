@@ -2,7 +2,7 @@ import {Any, Component, Condition, Includes, JustAdded, System} from "../Core";
 import {DOMElementComponent} from "./DOMElement";
 import {EntityCommandBuffer} from "../Core/Entity";
 
-export class DOMElementIdComponent extends Component<string> {}
+export const DOMElementIdComponent = Component.new<string>();
 
 export class DOMElementIdSystem extends System {
     QueryConditions(): ReadonlyArray<Condition> {

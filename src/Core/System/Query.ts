@@ -1,4 +1,4 @@
-import {Condition} from "../Conditions/index";
+import {Condition} from "../Conditions";
 
 export type QueryConditions = ReadonlyArray<Condition>;
 export type QueryHash = string;

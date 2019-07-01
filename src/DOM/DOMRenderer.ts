@@ -5,7 +5,7 @@ import {DOMElementComponent} from "./DOMElement";
 import {ParentComponent} from "../Hierarchy/Components";
 import {PositionComponent, SizeComponent} from '../Sizes/Components';
 
-export class DOMRendererComponent extends Component<keyof HTMLElementTagNameMap> {}
+export const DOMRendererComponent = Component.new<keyof HTMLElementTagNameMap>();
 
 export class DOMRendererSystem extends System {
     QueryConditions(): ReadonlyArray<Condition> {

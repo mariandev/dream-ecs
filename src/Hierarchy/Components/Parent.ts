@@ -1,3 +1,3 @@
 import {Component, Entity} from "../../Core";
 
-export class ParentComponent extends Component<Entity> {}
+export const ParentComponent = Component.new<Entity>();

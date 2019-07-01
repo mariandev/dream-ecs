@@ -15,10 +15,7 @@ module.exports = {
 	optimization: {
 		minimize,
 		minimizer: [new TerserPlugin({
-			terserOptions: {
-				keep_classnames: true,
-				keep_fnames: true,
-			}
+			terserOptions: { }
 		})],
 		concatenateModules: true,
 		flagIncludedChunks: true

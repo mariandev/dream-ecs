@@ -9,7 +9,7 @@ export abstract class Condition {
     }
 
     public get ComponentsName() {
-        return this.components.map(c => c.name);
+        return this.components.map(c => c.Id);
     }
 
     public abstract Evaluate(entity: Entity): boolean;

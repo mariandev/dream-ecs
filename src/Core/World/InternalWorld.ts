@@ -1,7 +1,7 @@
 import {IWorld} from "./IWorld";
 import {Entity, EntityCommandBuffer, EntityId} from "../Entity";
 import {Query, QueryConditions, QueryHash, System} from "../System";
-import {ComponentCtor, ComponentName, ComponentValue} from "../Component";
+import {ComponentCtor, ComponentId, ComponentValue} from "../Component";
 
 import * as Stats from "stats.js";
 
@@ -14,7 +14,7 @@ export class InternalWorld implements IWorld {
     private _systems = [] as System[];
     private _queries = new Map<QueryHash, Query>();
     private _entitiesByQuery = new Map<QueryHash, ReadonlyArray<EntityId>>();
-    private _queriesByComponent = new Map<ComponentName, ReadonlyArray<QueryHash>>();
+    private _queriesByComponent = new Map<ComponentId, ReadonlyArray<QueryHash>>();
 
     private _lsts: number | null = null;
     public dt: number = 0;
@@ -33,8 +33,8 @@ export class InternalWorld implements IWorld {
             AddComponent: <T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) => {
                 entity.__AddComponent(component, value);
 
-                if(this._queriesByComponent.has(component.name)) {
-                    queriesHashes.push(...this._queriesByComponent.get(component.name));
+                if(this._queriesByComponent.has(component.Id)) {
+                    queriesHashes.push(...this._queriesByComponent.get(component.Id));
                 }
 
                 return entityBuilder;
@@ -60,7 +60,7 @@ export class InternalWorld implements IWorld {
     public RemoveEntity(entity: Entity) {
         const queries = new Set<Query>();
 
-        for(const component in entity.Components) {
+        for(const [component] of entity.Components) {
             if(!this._queriesByComponent.has(component)) continue;
 
             this._queriesByComponent
@@ -113,18 +113,18 @@ export class InternalWorld implements IWorld {
 
     public OnComponentAdded(entity: Entity, component: ComponentCtor<unknown>) {
         // Recalculate entities for queries
-        if(this._queriesByComponent.has(component.name)) {
+        if(this._queriesByComponent.has(component.Id)) {
             this._queriesByComponent
-                .get(component.name)
+                .get(component.Id)
                 .map(hash => this._queries.get(hash))
                 .forEach(query => this.RecalculateEntitiesForQuery(query));
         }
     }
     public OnComponentRemoved(entity: Entity, component: ComponentCtor<unknown>) {
         // Recalculate entities for queries
-        if(this._queriesByComponent.has(component.name)) {
+        if(this._queriesByComponent.has(component.Id)) {
             this._queriesByComponent
-                .get(component.name)
+                .get(component.Id)
                 .map(hash => this._queries.get(hash))
                 .forEach(query => this.RecalculateEntitiesForQuery(query));
         }
@@ -155,8 +155,8 @@ export class InternalWorld implements IWorld {
             .map(id => this._entities.get(id))
     }
 
-    public GetQueriesByComponent(componentName: ComponentName) {
-        return this._queriesByComponent.get(componentName) || [];
+    public GetQueriesByComponent(componentId: ComponentId) {
+        return this._queriesByComponent.get(componentId) || [];
     }
 
     private CalculateDeltaTime() {
@@ -210,11 +210,11 @@ export class InternalWorld implements IWorld {
         const queriesHashes: Set<QueryHash> = new Set();
 
         for(const component of ecb.GetAddedComponents()) {
-            for(const q of this.GetQueriesByComponent(component.name)) queriesHashes.add(q);
+            for(const q of this.GetQueriesByComponent(component.Id)) queriesHashes.add(q);
         }
 
         for(const component of ecb.GetRemovedComponents()) {
-					for(const q of this.GetQueriesByComponent(component.name)) queriesHashes.add(q);
+					for(const q of this.GetQueriesByComponent(component.Id)) queriesHashes.add(q);
         }
 
         return queriesHashes;

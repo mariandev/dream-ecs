@@ -1,3 +1,3 @@
 import {Component} from "../../Core/index";
 
-export class PositionComponent extends Component<{x: number, y: number}> {}
+export const PositionComponent = Component.new<{x: number, y: number}>();

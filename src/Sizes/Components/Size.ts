@@ -1,3 +1,3 @@
 import {Component} from "../../Core/index";
 
-export class SizeComponent extends Component<{x: number, y: number}> {}
+export const SizeComponent = Component.new<{x: number, y: number}>();

@@ -2,12 +2,12 @@ import {Any, Component, Condition, Includes, JustAdded, JustRemoved, System, Tag
 import {EntityCommandBuffer} from "../Core/Entity";
 import {DOMElementComponent} from "./DOMElement";
 
-export class DOMTrackClickComponent extends TagComponent {}
-export class DOMTrackClickUseCaptureComponent extends TagComponent {}
-export class DOMTrackClickStopPropagationComponent extends TagComponent {}
-export class DOMTrackClickPreventDefaultComponent extends TagComponent {}
-export class DOMClickedComponent extends Component<MouseEvent> {}
-export class DOMClickListenerComponent extends Component<(e: MouseEvent) => void> {}
+export const DOMTrackClickComponent = TagComponent.new();
+export const DOMTrackClickUseCaptureComponent = TagComponent.new();
+export const DOMTrackClickStopPropagationComponent = TagComponent.new();
+export const DOMTrackClickPreventDefaultComponent = TagComponent.new();
+export const DOMClickedComponent = Component.new<MouseEvent>()
+export const DOMClickListenerComponent = Component.new<(e: MouseEvent) => void>();
 
 export class DOMTrackClickEventSystem extends System {
     QueryConditions(): ReadonlyArray<Condition> {

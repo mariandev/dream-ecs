@@ -7,6 +7,6 @@ export class Includes extends Condition {
     }
 
     Hash() {
-        return `Includes(${this.components.map(c => c.name).join(", ")})`;
+        return `Includes(${this.components.map(c => c.Id).join(", ")})`;
     }
 }
