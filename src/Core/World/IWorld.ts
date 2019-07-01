@@ -1,6 +1,6 @@
-import {Entity, EntityId} from "./Entity";
-import {System} from "./System";
-import {Component, ComponentCtor, ComponentValue} from "./Component";
+import {Entity, EntityId} from "../Entity/Entity";
+import {System} from "../System/System";
+import {ComponentCtor, ComponentValue} from "../Component/Component";
 
 export type IWorldNewEntityReturnType = {
     AddComponent: <T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) => IWorldNewEntityReturnType;
@@ -11,7 +11,6 @@ export type IWorldNewEntityReturnType = {
 export interface IWorld {
     EntityBuilder(): IWorldNewEntityReturnType;
 
-    DestroyEntity(entity: Entity): void;
     GetEntity(entityId: EntityId): Entity;
 
     RegisterSystem(system: {new (world: IWorld): System}): void;

@@ -1,9 +1,9 @@
 import {IWorld} from "./IWorld";
-import {Entity, EntityId} from "./Entity";
-import {Query, QueryConditions, QueryHash} from "./Query";
-import {Component, ComponentCtor, ComponentName, ComponentValue} from "./Component";
-import {System} from "./System";
-import {EntityCommandBuffer} from "./EntityCommandBuffer";
+import {Entity, EntityId} from "../Entity/Entity";
+import {Query, QueryConditions, QueryHash} from "../System/Query";
+import {ComponentCtor, ComponentName, ComponentValue} from "../Component/Component";
+import {System} from "../System/System";
+import {EntityCommandBuffer} from "../Entity/EntityCommandBuffer";
 
 import * as Stats from "stats.js";
 
@@ -59,7 +59,7 @@ export class InternalWorld implements IWorld {
         return entityBuilder;
     }
 
-    public DestroyEntity(entity: Entity) {
+    public RemoveEntity(entity: Entity) {
         const queries = new Set<Query>();
 
         for(const component in entity.AttachedComponents) {
@@ -107,7 +107,10 @@ export class InternalWorld implements IWorld {
     }
 
     public RegisterSystem(system: {new (world: IWorld): System}): void {
-        this._systems.push(new system(this));
+			let systemInstance = new system(this);
+			this._systems.push(systemInstance);
+
+			this.RecalculateEntitiesForQuery(systemInstance.Query);
     }
 
     public OnComponentAdded(entity: Entity, component: ComponentCtor<unknown>) {

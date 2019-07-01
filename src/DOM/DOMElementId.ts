@@ -1,7 +1,6 @@
-import {Component, Condition, Includes, JustAdded, System} from "../Core";
+import {Any, Component, Condition, Includes, JustAdded, System} from "../Core";
 import {DOMElementComponent} from "./DOMElement";
-import {Any} from "../Base/Conditions";
-import {EntityCommandBuffer} from "../Core/EntityCommandBuffer";
+import {EntityCommandBuffer} from "../Core/Entity";
 
 export class DOMElementIdComponent extends Component<string> {}
 

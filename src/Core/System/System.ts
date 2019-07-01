@@ -1,7 +1,7 @@
 import {Query, QueryConditions} from "./Query";
-import {InternalWorld} from "./InternalWorld";
-import {EntityCommandBuffer} from "./EntityCommandBuffer";
-import {Condition} from "./Conditions";
+import {InternalWorld} from "../World/InternalWorld";
+import {EntityCommandBuffer} from "../Entity/EntityCommandBuffer";
+import {Condition} from "../Conditions/index";
 
 export abstract class System {
     public readonly Query: Query;

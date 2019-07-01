@@ -1,5 +1,5 @@
-import {ComponentCtor, ComponentName, ComponentValue} from "./Component";
-import {InternalWorld} from "./InternalWorld";
+import {ComponentCtor, ComponentName, ComponentValue} from "../Component/Component";
+import {InternalWorld} from "../World/InternalWorld";
 
 export class Entity {
     public readonly Id = EntityIdGen.Gen;

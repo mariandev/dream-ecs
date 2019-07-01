@@ -1,5 +1,5 @@
-import {Condition} from "../../Core/Conditions";
-import {Entity} from "../../Core";
+import {Condition} from "./index";
+import {Entity} from "../index";
 
 export class Any extends Condition {
     protected conditions: Condition[];

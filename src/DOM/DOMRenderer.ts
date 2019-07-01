@@ -1,8 +1,9 @@
-import {Component, Condition, Entity, Includes, JustAdded, System} from "../Core";
-import {Any, Parent} from "../Base/Conditions";
-import {EntityCommandBuffer} from "../Core/EntityCommandBuffer";
+import {Any, Component, Condition, Entity, Includes, JustAdded, System} from "../Core";
+import {Parent} from "../Hierarchy/Conditions";
+import {EntityCommandBuffer} from "../Core/Entity";
 import {DOMElementComponent} from "./DOMElement";
-import {ParentComponent, PositionComponent, SizeComponent} from "../Base/Components";
+import {ParentComponent} from "../Hierarchy/Components";
+import {PositionComponent, SizeComponent} from '../Sizes/Components';
 
 export class DOMRendererComponent extends Component<keyof HTMLElementTagNameMap> {}
 

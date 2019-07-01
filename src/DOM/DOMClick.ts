@@ -1,7 +1,6 @@
-import {Component, Condition, Includes, JustAdded, JustRemoved, System, TagComponent} from "../Core";
-import {EntityCommandBuffer} from "../Core/EntityCommandBuffer";
+import {Any, Component, Condition, Includes, JustAdded, JustRemoved, System, TagComponent} from "../Core";
+import {EntityCommandBuffer} from "../Core/Entity";
 import {DOMElementComponent} from "./DOMElement";
-import {All, Any} from "../Base/Conditions";
 
 export class DOMTrackClickComponent extends TagComponent {}
 export class DOMTrackClickUseCaptureComponent extends TagComponent {}

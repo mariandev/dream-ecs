@@ -1,4 +1,4 @@
-import {Entity} from "../Entity";
+import {Entity} from "../Entity/Entity";
 
 export abstract class Condition {
     public components: Function[];

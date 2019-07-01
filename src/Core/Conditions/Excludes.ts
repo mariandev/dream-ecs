@@ -1,5 +1,5 @@
 import {Condition} from "./Condition";
-import {Entity} from "../Entity";
+import {Entity} from "../Entity/Entity";
 
 export class Excludes extends Condition {
     Evaluate(entity: Entity): boolean {

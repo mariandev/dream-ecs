@@ -1,6 +1,6 @@
-import {EntityId} from "./Entity";
-import {Component, ComponentCtor, ComponentName, ComponentValue} from "./Component";
-import {IWorld} from "./IWorld";
+import {Entity, EntityId} from "./Entity";
+import {ComponentCtor, ComponentValue} from "../Component";
+import {InternalWorld, IWorldNewEntityReturnType} from "../World";
 
 export class EntityCommandBuffer {
     private _addComponent: {ids: EntityId[], components: ComponentCtor<unknown>[], values: unknown[]} = {
@@ -13,7 +13,10 @@ export class EntityCommandBuffer {
         components: []
     };
 
-    constructor(private readonly _world: IWorld) {}
+    private _createEntity: (IWorldNewEntityReturnType["Create"])[] = [];
+    private _removeEntity: EntityId[];
+
+    constructor(private readonly _world: InternalWorld) {}
 
     public AddComponent<T extends ComponentCtor<unknown>>(entityId: EntityId, component: T, value: ComponentValue<T>): this {
         this._addComponent.ids.push(entityId);
@@ -25,6 +28,17 @@ export class EntityCommandBuffer {
         this._removeComponent.ids.push(entityId);
         this._removeComponent.components.push(component);
         return this;
+    }
+
+    public CreateEntity(): Omit<IWorldNewEntityReturnType, "Create"> {
+        const {Create, ...others} = this._world.EntityBuilder();
+
+        this._createEntity.push(Create);
+
+        return others;
+    }
+    public RemoveEntity(entityId: EntityId) {
+        this._removeEntity.push(entityId);
     }
 
     public Execute() {
@@ -41,6 +55,14 @@ export class EntityCommandBuffer {
             this._world
                 .GetEntity(this._removeComponent.ids[i])
                 .__RemoveComponent(this._removeComponent.components[i])
+        }
+
+        for(let i = 0;i < this._createEntity.length; i++) {
+            this._createEntity[i]();
+        }
+
+        for(let i = 0;i < this._removeEntity.length; i++) {
+            this._world.RemoveEntity(this._world.GetEntity(this._removeEntity[i]));
         }
     }
 
