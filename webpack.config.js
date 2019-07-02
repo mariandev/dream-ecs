@@ -70,7 +70,7 @@ DtsBundlePlugin.prototype.apply = function (compiler) {
 		var dts = require('dts-bundle');
 
 		dts.bundle({
-			name: "template-blocks",
+			name: "dream-ecs",
 			main: 'dist/index.d.ts',
 			out: 'dream-ecs.d.ts',
 			removeSource: true,

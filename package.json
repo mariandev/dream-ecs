@@ -1,6 +1,6 @@
 {
   "name": "dream-ecs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "dist/dream-ecs.js",
   "files": [
     "dist/dream-ecs.js",
