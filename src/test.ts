@@ -1,4 +1,4 @@
-import {Component, Entity, Excludes, Includes, System, TagComponent, World} from "./Core";
+import {Component, Entity, EntityId, Excludes, Includes, System, TagComponent, World} from "./Core";
 import {PositionComponent, SizeComponent} from './Sizes/Components';
 
 const ParticleEmitterComponent = Component.new<{particles: number}>();
@@ -54,6 +54,64 @@ world.RegisterSystem(System.new(
 		}
 	}
 ));
+
+// type Point = {x: number, y: number};
+// type JobOut = {velocity: Point[], speed: Point[], position: Point[]};
+// type JobIn = JobOut & {dt: number};
+// const job = new window["Job"](function(args: JobIn): JobOut {
+// 	const len = args.position.length;
+// 	const dt = args.dt;
+// 	const gdt = 9.81 * dt;
+//
+// 	for(let i = 0;i < len;i++) {
+// 		args.velocity[i].y += gdt;
+//
+// 		args.speed[i].x += args.velocity[i].x * dt;
+// 		args.speed[i].y += args.velocity[i].y * dt;
+//
+// 		args.position[i].x += args.speed[i].x * dt;
+// 		args.position[i].y += args.speed[i].y * dt;
+// 	}
+//
+// 	return args;
+// });
+//
+// world.RegisterSystem(System.new(
+// 	"ParticleUpdateSystem",
+// 	[
+// 		new Includes(PositionComponent),
+// 		new Includes(SpeedComponent),
+// 		new Includes(VelocityComponent),
+// 	],
+// 	function(ecb) {
+// 		const ids: EntityId[] = [];
+// 		const jobArgs = {
+// 			velocity: [],
+// 			speed: [],
+// 			position: [],
+// 			dt: this.dt
+// 		};
+//
+// 		for(const particle of this.GetEntities()) {
+// 			ids.push(particle.Id);
+// 			jobArgs.velocity.push(particle.GetComponent(VelocityComponent));
+// 			jobArgs.speed.push(particle.GetComponent(SpeedComponent));
+// 			jobArgs.position.push(particle.GetComponent(PositionComponent));
+// 		}
+//
+// 		return job.Schedule(jobArgs).then((result) => {
+// 			const len = ids.length;
+// 			for(let i = 0;i < len; i++) {
+// 				ecb
+// 					.AddComponent(ids[i], PositionComponent, result.position[i])
+// 					.AddComponent(ids[i], SpeedComponent, result.speed[i])
+// 					.AddComponent(ids[i], VelocityComponent, result.velocity[i])
+// 			}
+//
+// 			return result;
+// 		});
+// 	}
+// ));
 
 world.RegisterSystem(System.new(
 	"ParticleUpdateSystem",
@@ -178,7 +236,7 @@ window.addEventListener("load", () => {
 	const ctx = canvas.getContext("2d");
 
 	const spawner = world.EntityBuilder()
-		.AddComponent(ParticleEmitterComponent, {particles: 2500})
+		.AddComponent(ParticleEmitterComponent, {particles: 1000})
 		.AddComponent(PositionComponent, {x: 400, y: 400})
 		.AddComponent(ParticleRenderContextComponent, ctx)
 		.Create();

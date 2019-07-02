@@ -1,7 +1,7 @@
 import {Query, QueryConditions} from "./Query";
-import {InternalWorld} from "../World/InternalWorld";
-import {EntityCommandBuffer} from "../Entity/EntityCommandBuffer";
-import {Condition} from "../Conditions/index";
+import {InternalWorld} from "../World";
+import {EntityCommandBuffer} from "../Entity";
+import {Condition} from "../Conditions";
 
 export abstract class System {
     public readonly Query: Query;
@@ -30,7 +30,7 @@ export abstract class System {
             }
 
             Execute(ecb: EntityCommandBuffer) {
-                execute.call(this, ecb);
+                return execute.call(this, ecb);
             }
         };
 

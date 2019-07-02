@@ -20,7 +20,7 @@ export class InternalWorld implements IWorld {
     public dt: number = 0;
 
     constructor() {
-        this._loop();
+        this._loop().catch(console.error);
     }
 
     public EntityBuilder() {
@@ -200,10 +200,12 @@ export class InternalWorld implements IWorld {
         return queriesHashes;
     }
 
-    private ExecuteSystems(ecb: EntityCommandBuffer) {
+    private async ExecuteSystems(ecb: EntityCommandBuffer) {
+        const results = [] as (Promise<void> | undefined)[];
         for(const system of this._systems) {
-            system.Execute(ecb);
+            results.push(system.Execute(ecb));
 				}
+				return Promise.all(results);
     }
 
     private ExtractQueryHashesFromECB(ecb: EntityCommandBuffer) {
@@ -220,7 +222,7 @@ export class InternalWorld implements IWorld {
         return queriesHashes;
     }
 
-    private _loop = () => {
+    private _loop = async () => {
         this.CalculateDeltaTime();
 
         stats.begin();
@@ -229,7 +231,7 @@ export class InternalWorld implements IWorld {
 
         const ecb = new EntityCommandBuffer(this);
 
-        this.ExecuteSystems(ecb);
+        await this.ExecuteSystems(ecb);
 
         ecb.Execute();
 
