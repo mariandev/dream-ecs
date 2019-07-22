@@ -9,16 +9,18 @@ class ComponentIdGen {
 }
 
 
-export type ComponentCtor<T> = { new (): Component<T>, Id: ComponentId };
+export type ComponentCtor<T extends number = number> = { new (): Component<T>, Id: ComponentId };
 export type ComponentValue<T> = T extends ComponentCtor<infer U> ? U : unknown;
 
-export abstract class Component<T extends any> {
+export interface IComponent { }
+
+export abstract class Component<T extends number = number> implements IComponent {
     // Source: https://stackoverflow.com/a/55887088
     public _fixYourShitTypescript: T = undefined as unknown as T;
 
     public static Id: ComponentId;
 
-    public static new<T = void>() {
+    public static new<T extends number = number>() {
         const ctor = class extends Component<T> {};
 
         ctor.Id = ComponentIdGen.Gen;
@@ -27,4 +29,4 @@ export abstract class Component<T extends any> {
     }
 }
 
-export class TagComponent extends Component<void> {}
+export class TagComponent implements IComponent {}

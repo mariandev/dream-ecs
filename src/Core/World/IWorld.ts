@@ -3,8 +3,8 @@ import {System} from "../System/System";
 import {ComponentCtor, ComponentValue} from "../Component/Component";
 
 export type IWorldNewEntityReturnType = {
-    AddComponent: <T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) => IWorldNewEntityReturnType;
-    AddRawComponents: (components: [ComponentCtor<unknown>, unknown][]) => IWorldNewEntityReturnType;
+    AddComponent: <T extends ComponentCtor>(component: T, value: ComponentValue<T>) => IWorldNewEntityReturnType;
+    AddRawComponents: (components: [ComponentCtor, number][]) => IWorldNewEntityReturnType;
     Create: () => Entity;
 };
 

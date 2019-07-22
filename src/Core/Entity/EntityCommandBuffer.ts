@@ -3,12 +3,12 @@ import {ComponentCtor, ComponentValue} from "../Component";
 import {InternalWorld, IWorldNewEntityReturnType} from "../World";
 
 export class EntityCommandBuffer {
-    private _addComponent: {ids: EntityId[], components: ComponentCtor<unknown>[], values: unknown[]} = {
+    private _addComponent: {ids: EntityId[], components: ComponentCtor[], values: number[]} = {
         ids: [],
         components: [],
         values: []
     };
-    private _removeComponent: {ids: EntityId[], components: ComponentCtor<unknown>[]} = {
+    private _removeComponent: {ids: EntityId[], components: ComponentCtor[]} = {
         ids: [],
         components: []
     };
@@ -18,13 +18,13 @@ export class EntityCommandBuffer {
 
     constructor(private readonly _world: InternalWorld) {}
 
-    public AddComponent<T extends ComponentCtor<unknown>>(entityId: EntityId, component: T, value: ComponentValue<T>): this {
+    public AddComponent<T extends ComponentCtor>(entityId: EntityId, component: T, value: ComponentValue<T>): this {
         this._addComponent.ids.push(entityId);
         this._addComponent.components.push(component);
         this._addComponent.values.push(value);
         return this;
     }
-    public RemoveComponent<T extends ComponentCtor<unknown>>(entityId: EntityId, component: T): this {
+    public RemoveComponent<T extends ComponentCtor>(entityId: EntityId, component: T): this {
         this._removeComponent.ids.push(entityId);
         this._removeComponent.components.push(component);
         return this;
@@ -66,11 +66,11 @@ export class EntityCommandBuffer {
         }
     }
 
-    public GetAddedComponents(): Iterable<ComponentCtor<unknown>> {
+    public GetAddedComponents(): Iterable<ComponentCtor> {
         return this._addComponent.components.values();
     }
 
-    public GetRemovedComponents(): Iterable<ComponentCtor<unknown>> {
+    public GetRemovedComponents(): Iterable<ComponentCtor> {
         return this._removeComponent.components.values();
     }
 }

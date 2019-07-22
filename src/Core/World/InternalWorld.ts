@@ -30,7 +30,7 @@ export class InternalWorld implements IWorld {
         this._entities.set(entity.Id, entity);
 
         const entityBuilder = {
-            AddComponent: <T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) => {
+            AddComponent: <T extends ComponentCtor>(component: T, value: ComponentValue<T>) => {
                 entity.__AddComponent(component, value);
 
                 if(this._queriesByComponent.has(component.Id)) {
@@ -39,7 +39,7 @@ export class InternalWorld implements IWorld {
 
                 return entityBuilder;
             },
-            AddRawComponents: (components: [ComponentCtor<unknown>, unknown][]) => {
+            AddRawComponents: (components: [ComponentCtor, number][]) => {
                 for (let [component, value] of components) {
                     entityBuilder.AddComponent(component, value);
                 }
@@ -111,7 +111,7 @@ export class InternalWorld implements IWorld {
 			this.RecalculateEntitiesForQuery(systemInstance.Query);
     }
 
-    public OnComponentAdded(entity: Entity, component: ComponentCtor<unknown>) {
+    public OnComponentAdded(entity: Entity, component: ComponentCtor) {
         // Recalculate entities for queries
         if(this._queriesByComponent.has(component.Id)) {
             this._queriesByComponent
@@ -120,7 +120,7 @@ export class InternalWorld implements IWorld {
                 .forEach(query => this.RecalculateEntitiesForQuery(query));
         }
     }
-    public OnComponentRemoved(entity: Entity, component: ComponentCtor<unknown>) {
+    public OnComponentRemoved(entity: Entity, component: ComponentCtor) {
         // Recalculate entities for queries
         if(this._queriesByComponent.has(component.Id)) {
             this._queriesByComponent

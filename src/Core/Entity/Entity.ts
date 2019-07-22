@@ -24,7 +24,7 @@ export class Entity {
 
     constructor(private readonly _world: InternalWorld) {}
 
-    public AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>): this {
+    public AddComponent<T extends ComponentCtor>(component: T, value: ComponentValue<T>): this {
         const alreadyHadTheComponent = this.HasComponent(component);
 
         this.__AddComponent<T>(component, value);
@@ -33,7 +33,7 @@ export class Entity {
 
         return this;
     }
-    public RemoveComponent<T extends ComponentCtor<unknown>>(component: T): this {
+    public RemoveComponent<T extends ComponentCtor>(component: T): this {
         if(typeof this.Components[component.Id] === "undefined") return this;
 
         this.__RemoveComponent(component);
@@ -43,21 +43,21 @@ export class Entity {
         return this;
     }
 
-    public __AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) {
+    public __AddComponent<T extends ComponentCtor>(component: T, value: ComponentValue<T>) {
         this.Components[component.Id] = value;
 
         this.JustAddedComponents.next.add(component.Id);
     }
-    public __RemoveComponent(component: ComponentCtor<unknown>) {
+    public __RemoveComponent(component: ComponentCtor) {
         delete this.Components[component.Id];
 
         this.JustRemovedComponents.next.add(component.Id);
     }
 
-    public HasComponent<T extends ComponentCtor<unknown>>(component: T): boolean {
+    public HasComponent<T extends ComponentCtor>(component: T): boolean {
         return typeof this.Components[component.Id] !== "undefined";
     }
-    public GetComponent<T extends ComponentCtor<unknown>>(component: T) {
+    public GetComponent<T extends ComponentCtor>(component: T) {
         return this.Components[component.Id] as ComponentValue<T>;
     }
 
