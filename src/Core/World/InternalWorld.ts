@@ -47,6 +47,8 @@ export class InternalWorld implements IWorld {
                 return entityBuilder;
             },
             Create: () => {
+                entity.RecalculateArchetype();
+
                 for (const query of new Set(queriesHashes)) {
                     this.RecalculateEntitiesForQuery(this._queries.get(query));
                 }

@@ -1,10 +1,12 @@
-import {ComponentCtor, ComponentId, ComponentValue} from "../Component";
+import {Archetype, ComponentCtor, ComponentId, ComponentValue} from "../Component";
 import {InternalWorld} from "../World";
 
 export class Entity {
     public readonly Id = EntityIdGen.Gen;
 
-    public readonly Components = new Map<ComponentId, unknown>();
+    public readonly Components = new Map<ComponentId, number>();
+
+    public Archetype = new Archetype();
 
     public readonly JustAddedComponents: {
         now: Set<ComponentId>,
@@ -61,7 +63,23 @@ export class Entity {
         return this.Components[component.Id] as ComponentValue<T>;
     }
 
+    public RecalculateArchetype() {
+        const newSet = new Set<ComponentId>(this.Archetype);
+
+        for (const componentId of this.JustAddedComponents.next.values()) {
+            newSet.add(componentId);
+        }
+
+        for (const componentId of this.JustRemovedComponents.next.values()) {
+            newSet.delete(componentId);
+        }
+
+        this.Archetype = new Archetype(newSet);
+    }
+
     public AdvanceToNextStep() {
+        this.RecalculateArchetype();
+
         this.JustAddedComponents.now = this.JustAddedComponents.next;
         this.JustAddedComponents.next = new Set();
 
