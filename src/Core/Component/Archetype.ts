@@ -1,9 +1,9 @@
 import {ComponentId} from "./Component";
 
 export class Archetype {
-	private readonly _components: ReadonlySortedSet<ComponentId>;
-	constructor(components: Iterable<ComponentId> = []) {
-		this._components = new ReadonlySortedSet<ComponentId>(components);
+	private readonly _components: ReadonlyArray<ComponentId>;
+	constructor(components: Set<ComponentId> = new Set()) {
+		this._components = Array.from(components).sort();
 	}
 
 	public [Symbol.iterator]() {
@@ -11,7 +11,13 @@ export class Archetype {
 	}
 
 	public HasComponent(componentId: ComponentId) {
-		return this._components.has(componentId);
+		const len = this._components.length;
+		for(let i = 0; i < len; i++) {
+			let lv = this._components[i];
+			if (lv == componentId) return true;
+			if (lv > componentId) return false;
+		}
+		return false;
 	}
 
 	public AddComponent(componentId: ComponentId) {
@@ -48,24 +54,5 @@ export class Archetype {
 		}
 
 		return true;
-	}
-}
-
-class ReadonlySortedSet<T extends number> implements Iterable<T> {
-	private readonly _store: T[];
-	constructor(store: Iterable<T> = []) {
-		this._store = Array.from(store).sort();
-	}
-
-	[Symbol.iterator]() {
-		return this._store[Symbol.iterator]();
-	}
-
-	has(value: T) {
-		return this._store.find(sv => sv === value);
-	}
-
-	get length() {
-		return this._store.length;
 	}
 }
