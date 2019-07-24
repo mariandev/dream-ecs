@@ -1,4 +1,4 @@
-import {Archetype, ComponentCtor, ComponentId, ComponentValue, ReadonlySortedSet} from "../Component";
+import {Archetype, ComponentCtor, ComponentId, ComponentValue} from "../Component";
 import {InternalWorld} from "../World";
 
 export class Entity {
@@ -8,20 +8,14 @@ export class Entity {
 
     public Archetype = new Archetype();
 
-    public readonly JustAddedComponents: {
-        now: Set<ComponentId>,
-        next: Set<ComponentId>
-    } = {
-        now: new Set(),
-        next: new Set()
+    public readonly JustAddedComponents = {
+        now: new Set<number>(),
+        next: new Set<number>()
     };
 
-    public readonly JustRemovedComponents: {
-        now: Set<ComponentId>,
-        next: Set<ComponentId>
-    } = {
-        now: new Set(),
-        next: new Set()
+    public readonly JustRemovedComponents = {
+        now: new Set<number>(),
+        next: new Set<number>()
     };
 
     constructor(private readonly _world: InternalWorld) {}
@@ -71,7 +65,7 @@ export class Entity {
             newSet.delete(componentId);
         }
 
-        this.Archetype = new Archetype(new ReadonlySortedSet(newSet));
+        this.Archetype = new Archetype(newSet);
     }
 
     public AdvanceToNextStep() {

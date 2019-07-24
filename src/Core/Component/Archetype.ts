@@ -1,7 +1,10 @@
 import {ComponentId} from "./Component";
 
 export class Archetype {
-	constructor(private readonly _components: ReadonlySortedSet<ComponentId> = new ReadonlySortedSet()) {}
+	private readonly _components: ReadonlySortedSet<ComponentId>;
+	constructor(components: Iterable<ComponentId> = []) {
+		this._components = new ReadonlySortedSet<ComponentId>(components);
+	}
 
 	public [Symbol.iterator]() {
 		return this._components[Symbol.iterator]();
@@ -17,7 +20,7 @@ export class Archetype {
 			let newSet = new Set(this._components);
 			newSet.add(componentId);
 
-			return new Archetype(new ReadonlySortedSet(newSet));
+			return new Archetype(newSet);
 		}
 	}
 
@@ -30,7 +33,7 @@ export class Archetype {
 				if(componentId !== localComponent) newSet.add(localComponent);
 			}
 
-			return new Archetype(new ReadonlySortedSet(newSet));
+			return new Archetype(newSet);
 		}
 	}
 
@@ -48,7 +51,7 @@ export class Archetype {
 	}
 }
 
-export class ReadonlySortedSet<T extends number> implements Iterable<T> {
+class ReadonlySortedSet<T extends number> implements Iterable<T> {
 	private readonly _store: T[];
 	constructor(store: Iterable<T> = []) {
 		this._store = Array.from(store).sort();
