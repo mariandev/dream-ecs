@@ -1,4 +1,4 @@
-import {Archetype, ComponentCtor, ComponentId, ComponentValue} from "../Component";
+import {Archetype, ComponentCtor, ComponentId, ComponentValue, ReadonlySortedSet} from "../Component";
 import {InternalWorld} from "../World";
 
 export class Entity {
@@ -71,7 +71,7 @@ export class Entity {
             newSet.delete(componentId);
         }
 
-        this.Archetype = new Archetype(newSet);
+        this.Archetype = new Archetype(new ReadonlySortedSet(newSet));
     }
 
     public AdvanceToNextStep() {
