@@ -27,7 +27,7 @@ export class Entity {
     constructor(private readonly _world: InternalWorld) {}
 
     public AddComponent<T extends ComponentCtor>(component: T, value: ComponentValue<T>): this {
-        const alreadyHadTheComponent = this.HasComponent(component);
+        const alreadyHadTheComponent = this.Archetype.HasComponent(component.Id);
 
         this.__AddComponent<T>(component, value);
 
@@ -36,7 +36,7 @@ export class Entity {
         return this;
     }
     public RemoveComponent<T extends ComponentCtor>(component: T): this {
-        if(typeof this.Components[component.Id] === "undefined") return this;
+        if(!this.Archetype.HasComponent(component.Id)) return this;
 
         this.__RemoveComponent(component);
 
@@ -56,9 +56,6 @@ export class Entity {
         this.JustRemovedComponents.next.add(component.Id);
     }
 
-    public HasComponent<T extends ComponentCtor>(component: T): boolean {
-        return typeof this.Components[component.Id] !== "undefined";
-    }
     public GetComponent<T extends ComponentCtor>(component: T) {
         return this.Components[component.Id] as ComponentValue<T>;
     }

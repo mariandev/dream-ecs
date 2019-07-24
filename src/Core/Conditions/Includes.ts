@@ -3,7 +3,7 @@ import {Entity} from "../Entity";
 
 export class Includes extends Condition {
     Evaluate(entity: Entity): boolean {
-        return this.components.every(c => entity.HasComponent(c));
+        return this.components.every(c => entity.Archetype.HasComponent(c.Id));
     }
 
     Hash() {

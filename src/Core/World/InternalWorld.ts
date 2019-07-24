@@ -62,7 +62,7 @@ export class InternalWorld implements IWorld {
     public RemoveEntity(entity: Entity) {
         const queries = new Set<Query>();
 
-        for(const [component] of entity.Components) {
+        for(const component of entity.Archetype) {
             if(!this._queriesByComponent.has(component)) continue;
 
             this._queriesByComponent

@@ -9,7 +9,7 @@ export class Any extends Condition {
     }
 
     Evaluate(entity: Entity): boolean {
-        return this.conditions.find(c => c.Evaluate(entity)) != null;
+        return !!this.conditions.find(c => c.Evaluate(entity));
     }
 
     Hash(): string {

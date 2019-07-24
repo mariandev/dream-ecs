@@ -20,10 +20,12 @@ class ComponentIdGen {
 }
 
 
-export type ComponentCtor<T extends number = number> = { new (): Component<T>, Id: ComponentId };
-export type ComponentValue<T> = T extends ComponentCtor<infer U> ? U : unknown;
+export type ComponentCtor = typeof BaseComponent;
+export type ComponentValue<T> = T extends Component<infer U> ? U : unknown;
 
-export class BaseComponent { }
+export class BaseComponent {
+	public static Id: ComponentId;
+}
 
 export abstract class Component<T extends number = number> extends BaseComponent {
     // Source: https://stackoverflow.com/a/55887088
