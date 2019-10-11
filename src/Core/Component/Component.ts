@@ -1,6 +1,6 @@
 import {EntityId} from '../Entity';
 
-type TypedArrayCtor = Uint8ArrayConstructor
+export type TypedArrayCtor = Uint8ArrayConstructor
 	| Uint8ClampedArrayConstructor
 	| Uint16ArrayConstructor
 	| Uint32ArrayConstructor
@@ -8,7 +8,19 @@ type TypedArrayCtor = Uint8ArrayConstructor
 	| Int16ArrayConstructor
 	| Int32ArrayConstructor
 	| Float32ArrayConstructor
-	| Float64ArrayConstructor;
+	| Float64ArrayConstructor
+	| BigInt64ArrayConstructor;
+
+export type TypedArray = Uint8Array
+	| Uint8ClampedArray
+	| Uint16Array
+	| Uint32Array
+	| Int8Array
+	| Int16Array
+	| Int32Array
+	| Float32Array
+	| Float64Array
+	| BigInt64Array;
 
 
 export type ComponentId = number;
@@ -20,33 +32,32 @@ class ComponentIdGen {
 }
 
 
-export type ComponentCtor = typeof BaseComponent;
-export type ComponentValue<T> = T extends Component<infer U> ? U : unknown;
+export type ComponentCtor = typeof Component | typeof TagComponent;
+export type ComponentValue<T> = T extends typeof Component ? number | bigint : undefined;
 
-export class BaseComponent {
-	public static Id: ComponentId;
-}
-
-export abstract class Component<T extends number = number> extends BaseComponent {
-    // Source: https://stackoverflow.com/a/55887088
-    public _fixYourShitTypescript: T = undefined as unknown as T;
-
+export abstract class Component {
 		public static Id: ComponentId;
 		public static View: TypedArrayCtor;
 
-    public static new<T extends number = number>(view: TypedArrayCtor) {
-        return class extends Component<T> {
-					public static Id = ComponentIdGen.Gen;
-					public static View = view;
-				}
+    public static new(view: TypedArrayCtor) {
+			let component = class extends Component {
+				public static Id = ComponentIdGen.Gen;
+				public static View = view;
+			};
+
+			Component.IdToComponent[component.Id] = component;
+
+			return component as typeof Component;
     }
+
+    public static readonly IdToComponent: {[componentId: number]: typeof Component} = {};
 }
 
-export abstract class TagComponent extends BaseComponent {
+export abstract class TagComponent {
 	public static Id: ComponentId;
 
-	public static new<T extends number = number>() {
-		return class extends Component<T> {
+	public static new() {
+		return class extends Component {
 			public static Id = ComponentIdGen.Gen;
 		}
 	}

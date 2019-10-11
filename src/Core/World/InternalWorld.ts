@@ -1,9 +1,10 @@
 import {IWorld} from "./IWorld";
 import {Entity, EntityCommandBuffer, EntityId} from "../Entity";
 import {Query, QueryConditions, QueryHash, System} from "../System";
-import {ComponentCtor, ComponentId, ComponentValue} from "../Component";
+import {Archetype, ComponentCtor, ComponentId, ComponentValue} from "../Component";
 
 import * as Stats from "stats.js";
+import {DataStorage} from "../Component/DataStorage";
 
 const stats = new Stats();
 stats.showPanel(0);
@@ -13,8 +14,10 @@ export class InternalWorld implements IWorld {
     private _entities = new Map<EntityId, Entity>();
     private _systems = [] as System[];
     private _queries = new Map<QueryHash, Query>();
-    private _entitiesByQuery = new Map<QueryHash, ReadonlyArray<EntityId>>();
+    private _archetypeByQuery = new Map<QueryHash, ReadonlySet<Archetype>>();
     private _queriesByComponent = new Map<ComponentId, ReadonlyArray<QueryHash>>();
+
+    public readonly DataStorage = new DataStorage();
 
     private _lsts: number | null = null;
     public dt: number = 0;
@@ -24,34 +27,27 @@ export class InternalWorld implements IWorld {
     }
 
     public EntityBuilder() {
-        const entity = new Entity(this);
-        const queriesHashes: QueryHash[] = [];
+        const entity = new Entity();
 
         this._entities.set(entity.Id, entity);
 
+        const ecb = new EntityCommandBuffer(this);
+
         const entityBuilder = {
             AddComponent: <T extends ComponentCtor>(component: T, value: ComponentValue<T>) => {
-                entity.__AddComponent(component, value);
-
-                if(this._queriesByComponent.has(component.Id)) {
-                    queriesHashes.push(...this._queriesByComponent.get(component.Id));
-                }
+                ecb.AddComponent(entity.Id, component, value);
 
                 return entityBuilder;
             },
-            AddRawComponents: (components: [ComponentCtor, number][]) => {
+            AddRawComponents: (components: [ComponentCtor, number | undefined][]) => {
                 for (let [component, value] of components) {
-                    entityBuilder.AddComponent(component, value);
+                    entityBuilder.AddComponent(component, value as any);
                 }
 
                 return entityBuilder;
             },
             Create: () => {
-                entity.RecalculateArchetype();
-
-                for (const query of new Set(queriesHashes)) {
-                    this.RecalculateEntitiesForQuery(this._queries.get(query));
-                }
+                ecb.Execute();
 
                 return entity;
             }
@@ -113,48 +109,29 @@ export class InternalWorld implements IWorld {
 			this.RecalculateEntitiesForQuery(systemInstance.Query);
     }
 
-    public OnComponentAdded(entity: Entity, component: ComponentCtor) {
-        // Recalculate entities for queries
-        if(this._queriesByComponent.has(component.Id)) {
-            this._queriesByComponent
-                .get(component.Id)
-                .map(hash => this._queries.get(hash))
-                .forEach(query => this.RecalculateEntitiesForQuery(query));
-        }
-    }
-    public OnComponentRemoved(entity: Entity, component: ComponentCtor) {
-        // Recalculate entities for queries
-        if(this._queriesByComponent.has(component.Id)) {
-            this._queriesByComponent
-                .get(component.Id)
-                .map(hash => this._queries.get(hash))
-                .forEach(query => this.RecalculateEntitiesForQuery(query));
-        }
-    }
-
     private RecalculateEntitiesForQuery(query: Query) {
-        let entities = [] as EntityId[];
+        let archetypes = new Set<Archetype>();
 
-        for(const [id, entity] of this._entities.entries()) {
-
+        for(const entity of this._entities.values()) {
             if(query.QueryConditions.every(condition => condition.Evaluate(entity))) {
-                entities.push(id);
+                archetypes.add(entity.Archetype);
             }
         }
 
-        this._entitiesByQuery.set(query.Hash, entities);
+        this._archetypeByQuery.set(query.Hash, archetypes);
     }
 
-    private RecalculateEntitiesForQueries(hashes: QueryHash[]) {
-        Array.from(hashes)
-            .map(hash => this._queries.get(hash))
-            .forEach(query => this.RecalculateEntitiesForQuery(query));
+    private RecalculateEntitiesForQueries(hashes: Iterable<QueryHash>) {
+        for (const hash of hashes) {
+            this.RecalculateEntitiesForQuery(
+              this._queries.get(hash)
+            )
+        }
     }
 
-    public GetEntitiesForQuery(query: Query): ReadonlyArray<Entity> {
-        return this._entitiesByQuery
-            .get(query.Hash)
-            .map(id => this._entities.get(id))
+    public GetArchetypesForQuery(query: Query): ReadonlySet<Archetype> {
+        return this._archetypeByQuery
+            .get(query.Hash);
     }
 
     public GetQueriesByComponent(componentId: ComponentId) {
@@ -172,11 +149,11 @@ export class InternalWorld implements IWorld {
         const queriesHashes = new Set<QueryHash>();
 
         for(const e of this._entities.values()) {
-					for(const component of e.JustAddedComponents.now) {
-					    for(const q of this.GetQueriesByComponent(component)) {
-					        queriesHashes.add(q)
-					    }
-					}
+					// for(const component of e.JustAddedComponents.now) {
+					//     for(const q of this.GetQueriesByComponent(component)) {
+					//         queriesHashes.add(q)
+					//     }
+					// }
 
 					for(const component of e.JustAddedComponents.next) {
 						for(const q of this.GetQueriesByComponent(component)) {
@@ -184,11 +161,11 @@ export class InternalWorld implements IWorld {
 						}
 					}
 
-					for(const component of e.JustRemovedComponents.now) {
-						for(const q of this.GetQueriesByComponent(component)) {
-							queriesHashes.add(q)
-						}
-					}
+					// for(const component of e.JustRemovedComponents.now) {
+					// 	for(const q of this.GetQueriesByComponent(component)) {
+					// 		queriesHashes.add(q)
+					// 	}
+					// }
 
 					for(const component of e.JustRemovedComponents.next) {
 						for(const q of this.GetQueriesByComponent(component)) {
@@ -208,26 +185,10 @@ export class InternalWorld implements IWorld {
 				}
     }
 
-    private ExtractQueryHashesFromECB(ecb: EntityCommandBuffer) {
-        const queriesHashes: Set<QueryHash> = new Set();
-
-        for(const component of ecb.GetAddedComponents()) {
-            for(const q of this.GetQueriesByComponent(component.Id)) queriesHashes.add(q);
-        }
-
-        for(const component of ecb.GetRemovedComponents()) {
-					for(const q of this.GetQueriesByComponent(component.Id)) queriesHashes.add(q);
-        }
-
-        return queriesHashes;
-    }
-
     private _loop = () => {
         this.CalculateDeltaTime();
 
         stats.begin();
-
-        const queriesToRecalculate = new Set<QueryHash>();
 
         const ecb = new EntityCommandBuffer(this);
 
@@ -235,10 +196,7 @@ export class InternalWorld implements IWorld {
 
         ecb.Execute();
 
-        for(const hash of this.ExtractQueryHashesFromECB(ecb)) queriesToRecalculate.add(hash);
-        for(const hash of this.AdvanceEntitiesToNextStep()) queriesToRecalculate.add(hash);
-
-        this.RecalculateEntitiesForQueries(Array.from(queriesToRecalculate));
+        this.RecalculateEntitiesForQueries(this.AdvanceEntitiesToNextStep());
 
         stats.end();
 

@@ -1,10 +1,14 @@
 import {Query, QueryConditions} from "./Query";
-import {InternalWorld} from "../World/InternalWorld";
-import {EntityCommandBuffer} from "../Entity/EntityCommandBuffer";
-import {Condition} from "../Conditions/index";
+import {InternalWorld} from "../World";
+import {Entity, EntityCommandBuffer, EntityId} from "../Entity";
+import {Condition} from "../Conditions";
+import {Archetype, Component, ComponentCtor, ComponentId, ComponentValue} from "../Component";
+import {ArchetypeStore} from "../Component/DataStorage";
 
 export abstract class System {
     public readonly Query: Query;
+
+    public readonly Stores = new Map<Archetype, ArchetypeStore>();
 
     constructor(public readonly _world: InternalWorld) {
         this.Query = this._world.CreateQuery(this.QueryConditions());
@@ -14,8 +18,30 @@ export abstract class System {
         return this._world.dt;
     }
 
-    public GetEntities() {
-        return this._world.GetEntitiesForQuery(this.Query);
+    public GetArchetypes() {
+        return this._world.GetArchetypesForQuery(this.Query);
+    }
+
+    public *GetEntities(): Iterable<EntityId> {
+        for(const archetype of this.GetArchetypes()) {
+            const store = this._world.DataStorage.GetStoreForArchetype(archetype);
+            const view = store.entity;
+            for(let i = 0;i < store.length; i++) {
+                yield view[i];
+            }
+        }
+    }
+
+    public *GetComponentData(component: typeof Component): Iterator<ComponentValue<typeof Component>> {
+        for(const archetype of this.GetArchetypes()) {
+            const store = this._world.DataStorage.GetStoreForArchetype(archetype);
+
+            const view = store[component.Id];
+
+            for(let i = 0;i < store.length; i++) {
+                yield view[i];
+            }
+        }
     }
 
     public abstract QueryConditions(): QueryConditions;
