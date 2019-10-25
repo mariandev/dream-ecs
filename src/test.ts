@@ -2,13 +2,13 @@ import {Component, Includes, System, World} from "./Core";
 
 export const world = new World();
 
-const PositionX = Component.new(Float32Array);
-const PositionY = Component.new(Uint8Array);
-const PositionZ = Component.new(Uint8Array);
-const RotationX = Component.new(Uint8Array);
-const RotationY = Component.new(Uint8Array);
-const RotationZ = Component.new(Uint8Array);
-const RotationW = Component.new(Uint8Array);
+const PositionX = Component.new();
+const PositionY = Component.new();
+const PositionZ = Component.new();
+const RotationX = Component.new();
+const RotationY = Component.new();
+const RotationZ = Component.new();
+const RotationW = Component.new();
 
 world.RegisterSystem(System.new(
 	"Translocator",
@@ -16,25 +16,34 @@ world.RegisterSystem(System.new(
 		new Includes(PositionX)
 	],
 	function(ecb) {
-		const positions = this.GetComponentData(PositionX);
-		const entities = this.GetEntities();
+		// const positions = this.GetComponentData(PositionX);
+		// const entities = this.GetEntities();
+		//
+		// for (const entity of entities) {
+		// 	const position = positions.next().value as number;
+		//
+		// 	ecb.AddComponent(entity, PositionX, position + this.dt);
+		// }
 
-		for (const entity of entities) {
-			const position = positions.next().value as number;
+		// const positions = this.GetComponentData(PositionX);
+		this.GetEntitiesV2(function() {
+			// const position = positions.next().value as number;
 
-			ecb.AddComponent(entity, PositionX, position + this.dt);
-		}
+			// ecb.AddComponent(entity, PositionX, position + this.dt);
+		});
 	}
 ));
 
 window.onload = function() {
 	document.body.onclick = () => {
-		for (let i = 0;i < 10; i++) {
+		for (let i = 0;i < 1000; i++) {
 			world
 				.EntityBuilder()
 				.AddComponent(PositionX, 0)
 				.Create();
 		}
+
+		console.log((world as any)._internalWorld._entities.size);
 	}
 };
 

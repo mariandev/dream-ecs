@@ -146,7 +146,12 @@ export class Archetype implements Iterable<ComponentId> {
 
 		let iOne = 0, iTwo = 0;
 		while(true) {
-			if(iOne >= lenOne || iTwo >= lenTwo) break;
+			if(iOne >= lenOne) {
+				for(let k = iTwo;k < lenTwo; k++) yield two[k];
+				break;
+			}
+
+			if(iTwo >= lenTwo) break;
 
 			const valOne = one[iOne];
 			const valTwo = two[iTwo];

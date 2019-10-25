@@ -176,6 +176,8 @@ export class InternalWorld implements IWorld {
 					e.AdvanceToNextStep();
         }
 
+
+
         return queriesHashes;
     }
 

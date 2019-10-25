@@ -26,7 +26,7 @@ export abstract class System {
         for(const archetype of this.GetArchetypes()) {
             const store = this._world.DataStorage.GetStoreForArchetype(archetype);
             const view = store.entity;
-            for(let i = 0;i < store.length; i++) {
+            for(let i = 0;i < view.length; i++) {
                 yield view[i];
             }
         }
@@ -38,8 +38,19 @@ export abstract class System {
 
             const view = store[component.Id];
 
-            for(let i = 0;i < store.length; i++) {
+            for(let i = 0;i < view.length; i++) {
                 yield view[i];
+            }
+        }
+    }
+
+    public GetEntitiesV2(callback: (entityId: EntityId) => void) {
+        for(const archetype of this.GetArchetypes()) {
+            const store = this._world.DataStorage.GetStoreForArchetype(archetype);
+            const view = store.entity;
+            const viewLength = view.length;
+            for(let i = 0; i < viewLength; i++) {
+                callback(view[i]);
             }
         }
     }
