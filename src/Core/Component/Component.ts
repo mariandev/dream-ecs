@@ -18,13 +18,17 @@ export abstract class Component<T extends any> {
 
     public static Id: ComponentId;
 
-    public static new<T = void>() {
+    public static new<T = unknown>() {
         const ctor = class extends Component<T> {};
 
         ctor.Id = ComponentIdGen.Gen;
 
+				Component.IdToComponent[ctor.Id] = ctor as any;
+
         return ctor;
     }
+
+	public static readonly IdToComponent: {[componentId: number]: typeof Component} = {};
 }
 
-export class TagComponent extends Component<void> {}
+export abstract class TagComponent extends Component<void> {}

@@ -25,17 +25,14 @@ export class InternalWorld implements IWorld {
 
     public EntityBuilder() {
         const entity = new Entity(this);
-        const queriesHashes: QueryHash[] = [];
 
         this._entities.set(entity.Id, entity);
 
+        const ecb = new EntityCommandBuffer(this);
+
         const entityBuilder = {
             AddComponent: <T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) => {
-                entity.__AddComponent(component, value);
-
-                if(this._queriesByComponent.has(component.Id)) {
-                    queriesHashes.push(...this._queriesByComponent.get(component.Id));
-                }
+                ecb.AddComponent(entity.Id, component, value);
 
                 return entityBuilder;
             },
@@ -47,9 +44,7 @@ export class InternalWorld implements IWorld {
                 return entityBuilder;
             },
             Create: () => {
-                for (const query of new Set(queriesHashes)) {
-                    this.RecalculateEntitiesForQuery(this._queries.get(query));
-                }
+                ecb.Execute();
 
                 return entity;
             }
@@ -57,19 +52,20 @@ export class InternalWorld implements IWorld {
         return entityBuilder;
     }
 
+    private _queriesSetForRemoveEntity = new Set<Query>();
     public RemoveEntity(entity: Entity) {
-        const queries = new Set<Query>();
+        this._queriesSetForRemoveEntity.clear();
 
         for(const [component] of entity.Components) {
             if(!this._queriesByComponent.has(component)) continue;
 
             this._queriesByComponent
                 .get(component)
-                .forEach(hash => queries.add(this._queries.get(hash)));
+                .forEach(hash => this._queriesSetForRemoveEntity.add(this._queries.get(hash)));
         }
 
         // Remove entity from Query entity cache
-        queries.forEach(query => this.RecalculateEntitiesForQuery(query));
+        this._queriesSetForRemoveEntity.forEach(query => this.RecalculateEntitiesForQuery(query));
 
         this._entities.delete(entity.Id);
     }
@@ -111,25 +107,6 @@ export class InternalWorld implements IWorld {
 			this.RecalculateEntitiesForQuery(systemInstance.Query);
     }
 
-    public OnComponentAdded(entity: Entity, component: ComponentCtor<unknown>) {
-        // Recalculate entities for queries
-        if(this._queriesByComponent.has(component.Id)) {
-            this._queriesByComponent
-                .get(component.Id)
-                .map(hash => this._queries.get(hash))
-                .forEach(query => this.RecalculateEntitiesForQuery(query));
-        }
-    }
-    public OnComponentRemoved(entity: Entity, component: ComponentCtor<unknown>) {
-        // Recalculate entities for queries
-        if(this._queriesByComponent.has(component.Id)) {
-            this._queriesByComponent
-                .get(component.Id)
-                .map(hash => this._queries.get(hash))
-                .forEach(query => this.RecalculateEntitiesForQuery(query));
-        }
-    }
-
     private RecalculateEntitiesForQuery(query: Query) {
         let entities = [] as EntityId[];
 
@@ -143,16 +120,24 @@ export class InternalWorld implements IWorld {
         this._entitiesByQuery.set(query.Hash, entities);
     }
 
-    private RecalculateEntitiesForQueries(hashes: QueryHash[]) {
-        Array.from(hashes)
-            .map(hash => this._queries.get(hash))
-            .forEach(query => this.RecalculateEntitiesForQuery(query));
+    private RecalculateEntitiesForQueries(hashes: Iterable<QueryHash>) {
+        for(const hash of hashes) {
+            this.RecalculateEntitiesForQuery(
+              this._queries.get(hash)
+            );
+        }
     }
 
     public GetEntitiesForQuery(query: Query): ReadonlyArray<Entity> {
-        return this._entitiesByQuery
-            .get(query.Hash)
-            .map(id => this._entities.get(id))
+        const entities = this._entitiesByQuery.get(query.Hash);
+        const entitiesCount = entities.length;
+        const result = new Array(entitiesCount);
+
+        for(let i = 0;i < entitiesCount;i++) {
+            result[i] = this._entities.get(entities[i]);
+        }
+
+        return result;
     }
 
     public GetQueriesByComponent(componentId: ComponentId) {
@@ -166,38 +151,27 @@ export class InternalWorld implements IWorld {
         this._lsts = ts;
     }
 
+    private _queriesHashesSetForAdvanceEntitiesToNextStep = new Set<QueryHash>();
     private AdvanceEntitiesToNextStep() {
-        const queriesHashes = new Set<QueryHash>();
+        this._queriesHashesSetForAdvanceEntitiesToNextStep.clear();
 
         for(const e of this._entities.values()) {
-					for(const component of e.JustAddedComponents.now) {
-					    for(const q of this.GetQueriesByComponent(component)) {
-					        queriesHashes.add(q)
-					    }
-					}
+            for(const component of e.JustAddedComponents.next) {
+                for(const q of this.GetQueriesByComponent(component)) {
+                    this._queriesHashesSetForAdvanceEntitiesToNextStep.add(q)
+                }
+            }
 
-					for(const component of e.JustAddedComponents.next) {
-						for(const q of this.GetQueriesByComponent(component)) {
-							queriesHashes.add(q)
-						}
-					}
+            for(const component of e.JustRemovedComponents.next) {
+                for(const q of this.GetQueriesByComponent(component)) {
+                    this._queriesHashesSetForAdvanceEntitiesToNextStep.add(q)
+                }
+            }
 
-					for(const component of e.JustRemovedComponents.now) {
-						for(const q of this.GetQueriesByComponent(component)) {
-							queriesHashes.add(q)
-						}
-					}
-
-					for(const component of e.JustRemovedComponents.next) {
-						for(const q of this.GetQueriesByComponent(component)) {
-							queriesHashes.add(q)
-						}
-					}
-
-					e.AdvanceToNextStep();
+            e.AdvanceToNextStep();
         }
 
-        return queriesHashes;
+        return this._queriesHashesSetForAdvanceEntitiesToNextStep;
     }
 
     private ExecuteSystems(ecb: EntityCommandBuffer) {
@@ -206,26 +180,10 @@ export class InternalWorld implements IWorld {
 				}
     }
 
-    private ExtractQueryHashesFromECB(ecb: EntityCommandBuffer) {
-        const queriesHashes: Set<QueryHash> = new Set();
-
-        for(const component of ecb.GetAddedComponents()) {
-            for(const q of this.GetQueriesByComponent(component.Id)) queriesHashes.add(q);
-        }
-
-        for(const component of ecb.GetRemovedComponents()) {
-					for(const q of this.GetQueriesByComponent(component.Id)) queriesHashes.add(q);
-        }
-
-        return queriesHashes;
-    }
-
     private _loop = () => {
         this.CalculateDeltaTime();
 
         stats.begin();
-
-        const queriesToRecalculate = new Set<QueryHash>();
 
         const ecb = new EntityCommandBuffer(this);
 
@@ -233,10 +191,7 @@ export class InternalWorld implements IWorld {
 
         ecb.Execute();
 
-        for(const hash of this.ExtractQueryHashesFromECB(ecb)) queriesToRecalculate.add(hash);
-        for(const hash of this.AdvanceEntitiesToNextStep()) queriesToRecalculate.add(hash);
-
-        this.RecalculateEntitiesForQueries(Array.from(queriesToRecalculate));
+        this.RecalculateEntitiesForQueries(this.AdvanceEntitiesToNextStep());
 
         stats.end();
 

@@ -24,34 +24,15 @@ export class Entity {
 
     constructor(private readonly _world: InternalWorld) {}
 
-    public AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>): this {
-        const alreadyHadTheComponent = this.HasComponent(component);
+    public AddComponent(componentId: ComponentId, value: unknown) {
+        this.Components[componentId] = value;
 
-        this.__AddComponent<T>(component, value);
-
-        if(alreadyHadTheComponent) this._world.OnComponentAdded(this, component);
-
-        return this;
+        this.JustAddedComponents.next.add(componentId);
     }
-    public RemoveComponent<T extends ComponentCtor<unknown>>(component: T): this {
-        if(typeof this.Components[component.Id] === "undefined") return this;
+    public RemoveComponent(componentId: ComponentId) {
+        delete this.Components[componentId];
 
-        this.__RemoveComponent(component);
-
-        this._world.OnComponentRemoved(this, component);
-
-        return this;
-    }
-
-    public __AddComponent<T extends ComponentCtor<unknown>>(component: T, value: ComponentValue<T>) {
-        this.Components[component.Id] = value;
-
-        this.JustAddedComponents.next.add(component.Id);
-    }
-    public __RemoveComponent(component: ComponentCtor<unknown>) {
-        delete this.Components[component.Id];
-
-        this.JustRemovedComponents.next.add(component.Id);
+        this.JustRemovedComponents.next.add(componentId);
     }
 
     public HasComponent<T extends ComponentCtor<unknown>>(component: T): boolean {
@@ -62,11 +43,17 @@ export class Entity {
     }
 
     public AdvanceToNextStep() {
+        let tmp = this.JustAddedComponents.now;
+        tmp.clear();
+
         this.JustAddedComponents.now = this.JustAddedComponents.next;
-        this.JustAddedComponents.next = new Set();
+        this.JustAddedComponents.next = tmp;
+
+        tmp = this.JustRemovedComponents.now;
+        tmp.clear();
 
         this.JustRemovedComponents.now = this.JustRemovedComponents.next;
-        this.JustRemovedComponents.next = new Set();
+        this.JustRemovedComponents.next = tmp;
     }
 }
 
