@@ -14,7 +14,7 @@ export abstract class System {
         return this._world.dt;
     }
 
-    public GetEntities() {
+    public GetEntities() { // TODO: this should return entity ids
         return this._world.GetEntitiesForQuery(this.Query);
     }
 
