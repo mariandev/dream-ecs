@@ -1,21 +1,23 @@
-import {Component, Excludes, Includes, System, TagComponent, World} from "./Core";
+import {Component, Excludes, Includes, System, World} from "./Core";
 
 export const world = new World();
 
 const PositionX = Component.new<number>();
 const PositionY = Component.new<number>();
+const SpeedX = Component.new<number>();
 const Element = Component.new<HTMLDivElement>();
 
 world.RegisterSystem(System.new(
 	"Translocator",
 	[
-		new Includes(PositionX)
+		new Includes(PositionX),
+		new Includes(SpeedX)
 	],
 	function(ecb) {
 		for(const entity of this.GetEntities()) {
 			const posX = entity.GetComponent(PositionX);
-			const posY = entity.GetComponent(PositionY);
-			ecb.AddComponent(entity.Id, PositionX, posX + (this.dt * posY) % 2);
+			const speedX = entity.GetComponent(SpeedX);
+			ecb.AddComponent(entity.Id, PositionX, posX + this.dt * speedX);
 		}
 	}
 ));
@@ -84,11 +86,12 @@ world.RegisterSystem(System.new(
 
 window.onload = function() {
 	document.body.onclick = () => {
-		for (let i = 0;i < 100; i++) {
+		for (let i = 0;i < 1000; i++) {
 			world
 				.EntityBuilder()
 				.AddComponent(PositionX, 0)
 				.AddComponent(PositionY, Math.random() * innerHeight)
+				.AddComponent(SpeedX, Math.random() * 100 + 100)
 				.Create();
 		}
 
