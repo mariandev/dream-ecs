@@ -56,18 +56,19 @@ export class InternalWorld implements IWorld {
     public RemoveEntity(entity: Entity) {
         this._queriesSetForRemoveEntity.clear();
 
-        for(const [component] of entity.Components) {
-            if(!this._queriesByComponent.has(component)) continue;
+        for(const component of Object.keys(entity.Components)) {
+            const componentId = parseInt(component, 10);
+
+            if(!this._queriesByComponent.has(componentId)) continue;
 
             this._queriesByComponent
-                .get(component)
+                .get(componentId)
                 .forEach(hash => this._queriesSetForRemoveEntity.add(this._queries.get(hash)));
         }
 
-        // Remove entity from Query entity cache
-        this._queriesSetForRemoveEntity.forEach(query => this.RecalculateEntitiesForQuery(query));
-
         this._entities.delete(entity.Id);
+
+        this._queriesSetForRemoveEntity.forEach(query => this.RecalculateEntitiesForQuery(query));
     }
     public GetEntity(entityId: number): Entity {
         return this._entities.get(entityId);
