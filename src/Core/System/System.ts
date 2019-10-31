@@ -1,32 +1,62 @@
 import {Query, QueryConditions} from "./Query";
 import {InternalWorld} from "../World/InternalWorld";
 import {EntityCommandBuffer} from "../Entity/EntityCommandBuffer";
-import {Condition} from "../Conditions/index";
+import {EntityId} from "../Entity";
 
-export abstract class System {
-    public readonly Query: Query;
+type QueryMap = { [query: string]: Query };
+
+type QueryExecute<T extends QueryMap = {}> = (this: System<T>, ecb: EntityCommandBuffer) => void;
+type QueryGetQueries<T extends QueryMap = {}> = () => T;
+
+export abstract class System<T extends QueryMap = {}> {
+    public readonly Queries: T;
 
     constructor(public readonly _world: InternalWorld) {
-        this.Query = this._world.CreateQuery(this.QueryConditions());
+        this.Queries = this.GetQueries();
     }
 
     public get dt() {
         return this._world.dt;
     }
 
-    public GetEntities() { // TODO: this should return entity ids
-        return this._world.GetEntitiesForQuery(this.Query);
+    public GetEntities(query: Query) {
+        const entities = this._world.GetEntitiesForQuery(query);
+        const entitiesCount = entities.length;
+        const result = new Array(entitiesCount);
+
+        for(let i = 0;i < entitiesCount;i++) {
+            result[i] = this._world.GetEntity(entities[i]);
+        }
+
+        return result;
     }
 
-    public abstract QueryConditions(): QueryConditions;
+    public GetEntityIds(query: Query) {
+        return this._world.GetEntitiesForQuery(query);
+    }
+
+    public GetEntity(entityId: EntityId) {
+        return this._world.GetEntity(entityId);
+    }
+
+    protected abstract GetQueries(): T;
     public abstract Execute(ecb: EntityCommandBuffer);
 
-    public static new(name: string,
-                      query: QueryConditions,
-                      execute: (this: System, ecb: EntityCommandBuffer) => void) {
-        const ctor = class extends System {
-            QueryConditions(): ReadonlyArray<Condition> {
-                return query;
+    public static new<T extends QueryMap = {}>(name: string,
+                                               execute: QueryExecute<T>);
+    public static new<T extends QueryMap = {}>(name: string,
+                                               getQueries: T,
+                                               execute: QueryExecute<T>);
+    public static new<T extends QueryMap = {}>(name: string,
+                                               queriesOrExecute: T | QueryExecute<T>,
+                                               executeMaybe?: QueryExecute<T>) {
+
+        const queries = typeof executeMaybe === "undefined" ? {} as T : (queriesOrExecute as T);
+        const execute = typeof executeMaybe === "undefined" ? queriesOrExecute as QueryExecute<T> : executeMaybe;
+
+        const ctor = class extends System<T> {
+            GetQueries(): T {
+                return queries;
             }
 
             Execute(ecb: EntityCommandBuffer) {

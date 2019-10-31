@@ -9,12 +9,15 @@ const Element = Component.new<HTMLDivElement>();
 
 world.RegisterSystem(System.new(
 	"Translocator",
-	[
-		new Includes(PositionX),
-		new Includes(SpeedX)
-	],
+	{
+		query: world.CreateQuery([
+			new Includes(PositionX),
+			new Includes(SpeedX)
+		])
+	},
 	function(ecb) {
-		for(const entity of this.GetEntities()) {
+		for(const entityId of this.GetEntityIds(this.Queries.query)) {
+			const entity = this.GetEntity(entityId);
 			const posX = entity.GetComponent(PositionX);
 			const speedX = entity.GetComponent(SpeedX);
 			ecb.AddComponent(entity.Id, PositionX, posX + this.dt * speedX);
@@ -24,12 +27,15 @@ world.RegisterSystem(System.new(
 
 world.RegisterSystem(System.new(
 	"Render",
-	[
-		new Excludes(Element),
-		new Includes(PositionY)
-	],
+	{
+		query: world.CreateQuery([
+			new Excludes(Element),
+			new Includes(PositionY)
+		])
+	},
 	function(ecb) {
-		for(const entity of this.GetEntities()) {
+		for(const entityId of this.GetEntityIds(this.Queries.query)) {
+			const entity = this.GetEntity(entityId);
 			const posY = entity.GetComponent(PositionY);
 			const element = document.createElement("div");
 			Object.assign(element.style, {
@@ -47,14 +53,17 @@ world.RegisterSystem(System.new(
 	}
 ));
 
+const q = world.CreateQuery([
+	new Includes(PositionX),
+	new Includes(Element)
+]);
+
 world.RegisterSystem(System.new(
 	"SetPosition",
-	[
-		new Includes(PositionX),
-		new Includes(Element)
-	],
+	{ q },
 	function() {
-		for(const entity of this.GetEntities()) {
+		for(const entityId of this.GetEntityIds(this.Queries.q)) {
+			const entity = this.GetEntity(entityId);
 			const element = entity.GetComponent(Element);
 			const posX = entity.GetComponent(PositionX);
 
@@ -65,12 +74,15 @@ world.RegisterSystem(System.new(
 
 world.RegisterSystem(System.new(
 	"RemoveObsoleteEntities",
-	[
-		new Includes(Element),
-		new Includes(PositionX)
-	],
+	{
+		query: world.CreateQuery([
+			new Includes(Element),
+			new Includes(PositionX)
+		])
+	},
 	function(ecb) {
-		for(const entity of this.GetEntities()) {
+		for(const entityId of this.GetEntityIds(this.Queries.query)) {
+			const entity = this.GetEntity(entityId);
 			const posX = entity.GetComponent(PositionX);
 
 			if(posX > innerWidth) {
@@ -86,7 +98,7 @@ world.RegisterSystem(System.new(
 
 window.onload = function() {
 	document.body.onclick = () => {
-		for (let i = 0;i < 1000; i++) {
+		for (let i = 0;i < 500; i++) {
 			world
 				.EntityBuilder()
 				.AddComponent(PositionX, 0)

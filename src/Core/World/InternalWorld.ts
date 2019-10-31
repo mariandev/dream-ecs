@@ -52,7 +52,7 @@ export class InternalWorld implements IWorld {
         return entityBuilder;
     }
 
-    private _queriesSetForRemoveEntity = new Set<Query>();
+    private _queriesSetForRemoveEntity = new Set<QueryHash>();
     public RemoveEntity(entity: Entity) {
         this._queriesSetForRemoveEntity.clear();
 
@@ -63,12 +63,12 @@ export class InternalWorld implements IWorld {
 
             this._queriesByComponent
                 .get(componentId)
-                .forEach(hash => this._queriesSetForRemoveEntity.add(this._queries.get(hash)));
+                .forEach(hash => this._queriesSetForRemoveEntity.add(hash));
         }
 
         this._entities.delete(entity.Id);
 
-        this._queriesSetForRemoveEntity.forEach(query => this.RecalculateEntitiesForQuery(query));
+        this._queriesSetForRemoveEntity.forEach(query => this.RemoveEntityFromQueryEntityCache(query, entity.Id));
     }
     public GetEntity(entityId: number): Entity {
         return this._entities.get(entityId);
@@ -105,7 +105,32 @@ export class InternalWorld implements IWorld {
 			let systemInstance = new system(this);
 			this._systems.push(systemInstance);
 
-			this.RecalculateEntitiesForQuery(systemInstance.Query);
+			for (const query of Object.values(systemInstance.Queries)) {
+          this.RecalculateEntitiesForQuery(query as Query);
+      }
+    }
+
+    private RemoveEntityFromQueryEntityCache(hash: QueryHash, entityId: EntityId) {
+        if(!this._entitiesByQuery.has(hash)) return;
+
+        const entities = this._entitiesByQuery.get(hash) as Array<EntityId>;
+        const entitiesLength = entities.length;
+
+        if(entitiesLength === 0) return;
+        else if(entitiesLength === 1) {
+            entities.pop();
+        } else {
+            const index = entities.indexOf(entityId);
+
+            if(index === -1) return;
+
+            let lastIndex = entitiesLength - 1;
+            if(index < lastIndex) {
+                entities[index] = entities[lastIndex];
+            }
+
+            entities.length -= 1;
+        }
     }
 
     private RecalculateEntitiesForQuery(query: Query) {
@@ -129,16 +154,8 @@ export class InternalWorld implements IWorld {
         }
     }
 
-    public GetEntitiesForQuery(query: Query): ReadonlyArray<Entity> {
-        const entities = this._entitiesByQuery.get(query.Hash);
-        const entitiesCount = entities.length;
-        const result = new Array(entitiesCount);
-
-        for(let i = 0;i < entitiesCount;i++) {
-            result[i] = this._entities.get(entities[i]);
-        }
-
-        return result;
+    public GetEntitiesForQuery(query: Query): ReadonlyArray<EntityId> {
+        return this._entitiesByQuery.get(query.Hash);
     }
 
     public GetQueriesByComponent(componentId: ComponentId) {
