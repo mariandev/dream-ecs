@@ -24,7 +24,7 @@ export class InternalWorld implements IWorld {
     }
 
     public EntityBuilder() {
-        const entity = new Entity(this);
+        const entity = new Entity();
 
         this._entities.set(entity.Id, entity);
 
@@ -136,10 +136,9 @@ export class InternalWorld implements IWorld {
     private RecalculateEntitiesForQuery(query: Query) {
         let entities = [] as EntityId[];
 
-        for(const [id, entity] of this._entities.entries()) {
-
+        for(const entity of this._entities.values()) {
             if(query.QueryConditions.every(condition => condition.Evaluate(entity))) {
-                entities.push(id);
+                entities.push(entity.Id);
             }
         }
 
@@ -169,24 +168,28 @@ export class InternalWorld implements IWorld {
         this._lsts = ts;
     }
 
+    private _componentsSetForAdvanceEntitiesToNextStep = new Set<ComponentId>();
     private _queriesHashesSetForAdvanceEntitiesToNextStep = new Set<QueryHash>();
     private AdvanceEntitiesToNextStep() {
+        this._componentsSetForAdvanceEntitiesToNextStep.clear();
         this._queriesHashesSetForAdvanceEntitiesToNextStep.clear();
 
         for(const e of this._entities.values()) {
             for(const component of e.JustAddedComponents.next) {
-                for(const q of this.GetQueriesByComponent(component)) {
-                    this._queriesHashesSetForAdvanceEntitiesToNextStep.add(q)
-                }
+                this._componentsSetForAdvanceEntitiesToNextStep.add(component);
             }
 
             for(const component of e.JustRemovedComponents.next) {
-                for(const q of this.GetQueriesByComponent(component)) {
-                    this._queriesHashesSetForAdvanceEntitiesToNextStep.add(q)
-                }
+                this._componentsSetForAdvanceEntitiesToNextStep.add(component);
             }
 
             e.AdvanceToNextStep();
+        }
+
+        for(const component of this._componentsSetForAdvanceEntitiesToNextStep.values()) {
+            for(const q of this.GetQueriesByComponent(component)) {
+                this._queriesHashesSetForAdvanceEntitiesToNextStep.add(q)
+            }
         }
 
         return this._queriesHashesSetForAdvanceEntitiesToNextStep;

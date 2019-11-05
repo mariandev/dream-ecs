@@ -22,8 +22,6 @@ export class Entity {
         next: new Set()
     };
 
-    constructor(private readonly _world: InternalWorld) {}
-
     public AddComponent(componentId: ComponentId, value: unknown) {
         this.Components[componentId] = value;
 

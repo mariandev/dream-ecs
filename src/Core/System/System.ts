@@ -11,7 +11,7 @@ type QueryGetQueries<T extends QueryMap = {}> = () => T;
 export abstract class System<T extends QueryMap = {}> {
     public readonly Queries: T;
 
-    constructor(public readonly _world: InternalWorld) {
+    constructor(private readonly _world: InternalWorld) {
         this.Queries = this.GetQueries();
     }
 
@@ -19,16 +19,13 @@ export abstract class System<T extends QueryMap = {}> {
         return this._world.dt;
     }
 
-    public GetEntities(query: Query) {
+    public *GetEntities(query: Query) {
         const entities = this._world.GetEntitiesForQuery(query);
         const entitiesCount = entities.length;
-        const result = new Array(entitiesCount);
 
         for(let i = 0;i < entitiesCount;i++) {
-            result[i] = this._world.GetEntity(entities[i]);
+            yield this._world.GetEntity(entities[i]);
         }
-
-        return result;
     }
 
     public GetEntityIds(query: Query) {
