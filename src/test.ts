@@ -1,21 +1,21 @@
-import {Component, Excludes, Includes, System, World} from "./Core";
+import {Component, EntityCommandBuffer, Excludes, Includes, System, World} from "./Core";
 
 export const world = new World();
 
 const PositionX = Component.new<number>();
 const PositionY = Component.new<number>();
 const SpeedX = Component.new<number>();
-const Element = Component.new<HTMLDivElement>();
 
-world.RegisterSystem(System.new(
-	"Translocator",
-	{
+@World.RegisterSystem()
+class TranslocatorSystem extends System {
+	Queries = {
 		query: world.CreateQuery([
 			new Includes(PositionX),
 			new Includes(SpeedX)
 		])
-	},
-	function(ecb) {
+	};
+
+	Execute(ecb: EntityCommandBuffer) {
 		for(const entityId of this.GetEntityIds(this.Queries.query)) {
 			const entity = this.GetEntity(entityId);
 			const posX = entity.GetComponent(PositionX);
@@ -23,85 +23,77 @@ world.RegisterSystem(System.new(
 			ecb.AddComponent(entity.Id, PositionX, posX + this.dt * speedX);
 		}
 	}
-));
+}
 
-world.RegisterSystem(System.new(
-	"Render",
-	{
+@World.RegisterSystem()
+class SetPositionSystem extends System {
+	Queries = {
 		query: world.CreateQuery([
-			new Excludes(Element),
-			new Includes(PositionY)
-		])
-	},
-	function(ecb) {
-		for(const entityId of this.GetEntityIds(this.Queries.query)) {
-			const entity = this.GetEntity(entityId);
-			const posY = entity.GetComponent(PositionY);
-			const element = document.createElement("div");
-			Object.assign(element.style, {
-				width: "100px",
-				height: "100px",
-				position: "absolute",
-				top: posY + "px",
-				background: "hsl(" + (Math.random() * 360) + ", 50%, 50%)"
-			});
-
-			document.body.appendChild(element);
-
-			ecb.AddComponent(entity.Id, Element, element);
-		}
-	}
-));
-
-const q = world.CreateQuery([
-	new Includes(PositionX),
-	new Includes(Element)
-]);
-
-world.RegisterSystem(System.new(
-	"SetPosition",
-	{ q },
-	function() {
-		for(const entityId of this.GetEntityIds(this.Queries.q)) {
-			const entity = this.GetEntity(entityId);
-			const element = entity.GetComponent(Element);
-			const posX = entity.GetComponent(PositionX);
-
-			element.style.left = posX + "px";
-		}
-	}
-));
-
-world.RegisterSystem(System.new(
-	"RemoveObsoleteEntities",
-	{
-		query: world.CreateQuery([
-			new Includes(Element),
 			new Includes(PositionX)
 		])
-	},
-	function(ecb) {
+	};
+
+	Execute(ecb: EntityCommandBuffer) {
+		if(!ctx) return;
+
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.beginPath();
+		for(const entityId of this.GetEntityIds(this.Queries.query)) {
+			const entity = this.GetEntity(entityId);
+			const posX = entity.GetComponent(PositionX);
+			const posY = entity.GetComponent(PositionY);
+
+
+			ctx.rect(posX, posY, 1, 1);
+		}
+		ctx.fillStyle = "red";
+		ctx.fill();
+	}
+}
+
+@World.RegisterSystem()
+class ResetEntitiesSystem extends System {
+	Queries = {
+		query: world.CreateQuery([
+			new Includes(PositionX)
+		])
+	};
+
+	Execute(ecb: EntityCommandBuffer) {
 		for(const entityId of this.GetEntityIds(this.Queries.query)) {
 			const entity = this.GetEntity(entityId);
 			const posX = entity.GetComponent(PositionX);
 
 			if(posX > innerWidth) {
-				const element = entity.GetComponent(Element);
-
-				document.body.removeChild(element);
-
-				ecb.RemoveEntity(entity.Id);
+				ecb.AddComponent(entityId, PositionX, -100);
 			}
 		}
 	}
-));
+}
+
+let canvas: HTMLCanvasElement;
+let ctx: CanvasRenderingContext2D;
 
 window.onload = function() {
+	canvas = document.createElement("canvas");
+	ctx = canvas.getContext("2d");
+
+	canvas.width = innerWidth;
+	canvas.height = innerHeight;
+
+	canvas.style.position = "absolute";
+	canvas.style.left = "0";
+	canvas.style.right = "0";
+	canvas.style.top = "0";
+	canvas.style.bottom = "0";
+
+	document.body.appendChild(canvas);
+
 	document.body.onclick = () => {
 		for (let i = 0;i < 500; i++) {
 			world
 				.EntityBuilder()
-				.AddComponent(PositionX, 0)
+				.AddComponent(PositionX, -100)
 				.AddComponent(PositionY, Math.random() * innerHeight)
 				.AddComponent(SpeedX, Math.random() * 100 + 100)
 				.Create();

@@ -9,7 +9,8 @@
     "declaration": true,
     "lib": ["dom", "es5", "esnext", "esnext.array"],
     "baseUrl": "./src",
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "experimentalDecorators": true
   },
   "exclude": [
     "node_modules"
