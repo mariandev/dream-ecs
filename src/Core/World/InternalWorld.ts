@@ -84,10 +84,10 @@ export class InternalWorld implements IWorld {
 
         const query = new Query(queryConditions);
 
-        queryConditions.forEach(({ComponentsName}) => {
+        queryConditions.forEach(({ComponentsId}) => {
             const queries = [ query.Hash ] as QueryHash[];
 
-            for(const component of ComponentsName) {
+            for(const component of ComponentsId) {
                 if(this._queriesByComponent.has(component)) {
                     queries.unshift(...this._queriesByComponent.get(component));
                 }

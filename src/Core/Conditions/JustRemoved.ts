@@ -1,12 +1,12 @@
-import {Condition} from "./Condition";
 import {Entity} from "../Entity";
+import {SingleComponentCondition} from "./SingleComponentCondition";
 
-export class JustRemoved extends Condition {
+export class JustRemoved extends SingleComponentCondition {
     Evaluate(entity: Entity): boolean {
-        return this.components.every(c => entity.JustRemovedComponents.now.has(c.Id));
+        return entity.JustRemovedComponents.now.has(this._component.Id);
     }
 
     Hash() {
-        return `JustRemoved(${this.components.map(c => c.Id).join(", ")})`;
+        return `JustRemoved(${this.Components.map(c => c.Id).join(", ")})`;
     }
 }

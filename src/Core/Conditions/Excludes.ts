@@ -1,12 +1,12 @@
-import {Condition} from "./Condition";
 import {Entity} from "../Entity";
+import {SingleComponentCondition} from "./SingleComponentCondition";
 
-export class Excludes extends Condition {
+export class Excludes extends SingleComponentCondition {
     Evaluate(entity: Entity): boolean {
-        return this.components.every(c => !entity.HasComponent(c));
+        return !entity.HasComponent(this._component);
     }
 
     Hash() {
-        return `Excludes(${this.components.map(c => c.Id).join(", ")})`;
+        return `Excludes(${this.Components.map(c => c.Id).join(", ")})`;
     }
 }

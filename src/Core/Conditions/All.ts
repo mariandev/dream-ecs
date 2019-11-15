@@ -4,7 +4,7 @@ import {Entity} from "../Entity";
 export class All extends Condition {
     protected conditions: Condition[];
     constructor(...conditions: Condition[]) {
-        super(...conditions.flatMap(c => c.components));
+        super(...conditions.map(c => c.Components).reduce((a, v) => [...a, ...v], []));
         this.conditions = conditions;
     }
 
