@@ -4,6 +4,7 @@ import {Query, QueryConditions, QueryHash, System} from "../System";
 import {ComponentCtor, ComponentId, ComponentValue} from "../Component";
 
 import * as Stats from "stats.js";
+import {DependencyTree} from "../System/DependencyTree";
 
 const stats = new Stats();
 stats.showPanel(0);
@@ -11,10 +12,12 @@ window.addEventListener("load", () => document.body.appendChild( stats.dom ));
 
 export class InternalWorld implements IWorld {
     private _entities = new Map<EntityId, Entity>();
-    private _systems = [] as System[];
+    private _systems = new Map<Function, System>();
     private _queries = new Map<QueryHash, Query>();
     private _entitiesByQuery = new Map<QueryHash, ReadonlyArray<EntityId>>();
     private _queriesByComponent = new Map<ComponentId, ReadonlyArray<QueryHash>>();
+
+    public readonly DependencyTreeForSystems = new DependencyTree<Function>();
 
     private _lsts: number | null = null;
     public dt: number = 0;
@@ -103,7 +106,7 @@ export class InternalWorld implements IWorld {
 
     public RegisterSystem(system: {new (world: IWorld): System}): void {
 			let systemInstance = new system(this);
-			this._systems.push(systemInstance);
+			this._systems.set(system, systemInstance);
 
 			for (const query of Object.values(systemInstance.Queries)) {
           this.RecalculateEntitiesForQuery(query as Query);
@@ -196,8 +199,8 @@ export class InternalWorld implements IWorld {
     }
 
     private ExecuteSystems(ecb: EntityCommandBuffer) {
-        for(const system of this._systems) {
-            system.Execute(ecb);
+        for(const system of this.DependencyTreeForSystems.OrderedNodes) {
+            this._systems.get(system).Execute(ecb);
 				}
     }
 

@@ -6,7 +6,7 @@ import {Query, QueryConditions, System} from "../System";
 export class World implements IWorld {
     public static Active: World = null;
 
-    private readonly _internalWorld: IWorld = new InternalWorld();
+    private readonly _internalWorld: InternalWorld = new InternalWorld();
 
     constructor() {
         if(World.Active == null) {
@@ -30,9 +30,22 @@ export class World implements IWorld {
         return this._internalWorld.CreateQuery(queryConditions);
     }
 
-    public static RegisterSystem(world: IWorld = World.Active) {
+    public static RegisterSystem(world: World = World.Active) {
         return function(ctor) {
             world.RegisterSystem(ctor);
+            world._internalWorld.DependencyTreeForSystems.AddElement(ctor);
         };
+    }
+
+    public static ExecuteAfter(after: Function, world: World = World.Active) {
+        return function(ctor: Function) {
+            world._internalWorld.DependencyTreeForSystems.AddDependency(after, ctor);
+        }
+    }
+
+    public static ExecuteBefore(before: Function, world: World = World.Active) {
+        return function(ctor: Function) {
+            world._internalWorld.DependencyTreeForSystems.AddDependency(ctor, before);
+        }
     }
 }

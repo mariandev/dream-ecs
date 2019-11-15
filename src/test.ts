@@ -1,4 +1,4 @@
-import {Component, EntityCommandBuffer, Excludes, Includes, System, World} from "./Core";
+import {Component, EntityCommandBuffer, Includes, System, World} from "./Core";
 
 export const world = new World();
 
@@ -26,6 +26,7 @@ class TranslocatorSystem extends System {
 }
 
 @World.RegisterSystem()
+@World.ExecuteAfter(TranslocatorSystem)
 class SetPositionSystem extends System {
 	Queries = {
 		query: world.CreateQuery([
@@ -52,6 +53,7 @@ class SetPositionSystem extends System {
 }
 
 @World.RegisterSystem()
+@World.ExecuteAfter(SetPositionSystem)
 class ResetEntitiesSystem extends System {
 	Queries = {
 		query: world.CreateQuery([
@@ -102,4 +104,3 @@ window.onload = function() {
 		console.log((world as any)._internalWorld._entities.size);
 	}
 };
-
