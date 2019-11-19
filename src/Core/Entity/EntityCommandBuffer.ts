@@ -1,5 +1,5 @@
 import {EntityId} from "./Entity";
-import {ComponentCtor, ComponentId, ComponentValue} from "../Component";
+import {ComponentCtor, ComponentId, ComponentValue, TagComponentCtor} from "../Component";
 import {InternalWorld, IWorldNewEntityReturnType} from "../World";
 
 export class EntityCommandBuffer {
@@ -10,7 +10,9 @@ export class EntityCommandBuffer {
 
     constructor(private readonly _world: InternalWorld) {}
 
-    public AddComponent<T extends ComponentCtor<unknown>>(entityId: EntityId, component: T, value: ComponentValue<T>): this {
+    public AddComponent<T extends TagComponentCtor>(entityId: EntityId, component: T): this;
+    public AddComponent<T extends ComponentCtor<unknown>>(entityId: EntityId, component: T, value: ComponentValue<T>): this
+    public AddComponent<T extends ComponentCtor<unknown>>(entityId: EntityId, component: T, value?: ComponentValue<T>): this {
         if(typeof this._components[entityId] === "undefined") this._components[entityId] = {add: {}, remove: []};
 
         this._components[entityId].add[component.Id] = value;

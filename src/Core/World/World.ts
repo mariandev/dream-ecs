@@ -30,6 +30,8 @@ export class World implements IWorld {
         return this._internalWorld.CreateQuery(queryConditions);
     }
 
+    public static RegisterSystem();
+    public static RegisterSystem(world: World);
     public static RegisterSystem(world: World = World.Active) {
         return function(ctor) {
             world.RegisterSystem(ctor);
@@ -37,12 +39,16 @@ export class World implements IWorld {
         };
     }
 
+    public static ExecuteAfter(after: Function);
+    public static ExecuteAfter(after: Function, world: World);
     public static ExecuteAfter(after: Function, world: World = World.Active) {
         return function(ctor: Function) {
             world._internalWorld.DependencyTreeForSystems.AddDependency(after, ctor);
         }
     }
 
+    public static ExecuteBefore(before: Function);
+    public static ExecuteBefore(before: Function, world: World);
     public static ExecuteBefore(before: Function, world: World = World.Active) {
         return function(ctor: Function) {
             world._internalWorld.DependencyTreeForSystems.AddDependency(ctor, before);

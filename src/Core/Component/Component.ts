@@ -10,7 +10,8 @@ class ComponentIdGen {
 
 
 export type ComponentCtor<T> = { new (): Component<T>, Id: ComponentId };
-export type ComponentValue<T> = T extends ComponentCtor<infer U> ? U : unknown;
+export type TagComponentCtor = { new (): TagComponent, Id: ComponentId };
+export type ComponentValue<T> = T extends ComponentCtor<infer U> ? (T extends TagComponentCtor ? undefined : U) : unknown;
 
 export abstract class Component<T extends any> {
     // Source: https://stackoverflow.com/a/55887088
@@ -31,4 +32,8 @@ export abstract class Component<T extends any> {
 	public static readonly IdToComponent: {[componentId: number]: typeof Component} = {};
 }
 
-export abstract class TagComponent extends Component<void> {}
+export abstract class TagComponent extends Component<undefined> {
+	public static new() {
+		return Component.new<undefined>();
+	}
+}
