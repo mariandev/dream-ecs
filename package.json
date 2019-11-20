@@ -10,8 +10,11 @@
   "scripts": {
     "setup": "yarn",
     "build": "webpack-cli",
+    "build-prod": "PROD=1 webpack-cli",
     "watch": "webpack-cli --watch",
-    "docs": "typedoc"
+    "watch-prod": "PROD=1 webpack-cli --watch",
+    "docs": "typedoc",
+    "test": "echo ok"
   },
   "dependencies": {},
   "devDependencies": {
