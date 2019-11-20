@@ -2,14 +2,8 @@ import {IWorld} from "./IWorld";
 import {Entity, EntityCommandBuffer, EntityId} from "../Entity";
 import {Query, QueryConditions, QueryHash, System} from "../System";
 import {ComponentCtor, ComponentId, ComponentValue} from "../Component";
-
-import * as Stats from "stats.js";
 import {DependencyTree} from "../System/DependencyTree";
 import {AsyncEntityCommandBuffer} from "../Entity/AsyncEntityCommandBuffer";
-
-const stats = new Stats();
-stats.showPanel(0);
-window.addEventListener("load", () => document.body.appendChild( stats.dom ));
 
 export class InternalWorld implements IWorld {
     private _entities = new Map<EntityId, Entity>();
@@ -220,8 +214,6 @@ export class InternalWorld implements IWorld {
     private _loop = () => {
         this.CalculateDeltaTime();
 
-        stats.begin();
-
         const ecb = new EntityCommandBuffer(this);
 
         this.ExecuteSystems(ecb);
@@ -234,8 +226,6 @@ export class InternalWorld implements IWorld {
         this._asyncEBCs.length = 0;
 
         this.RecalculateEntitiesForQueries(this.AdvanceEntitiesToNextStep());
-
-        stats.end();
 
         requestAnimationFrame(this._loop);
     };
