@@ -11,7 +11,7 @@ export class EntityCommandBuffer {
 
     private _executed = false;
 
-    constructor(private readonly _world: InternalWorld) {}
+    constructor(protected readonly _world: InternalWorld) {}
 
     public AddComponent<T extends TagComponentCtor>(entityId: EntityId, component: T): this;
     public AddComponent<T extends ComponentCtor<unknown>>(entityId: EntityId, component: T, value: ComponentValue<T>): this
@@ -24,6 +24,7 @@ export class EntityCommandBuffer {
 
         return this;
     }
+
     public RemoveComponent<T extends ComponentCtor<unknown>>(entityId: EntityId, component: T): this {
         if(this._executed) throw Logger.error(`Cannot remove component "${component.Id}" from entity "${entityId}", the ECB has already been executed`);
 
@@ -42,6 +43,7 @@ export class EntityCommandBuffer {
 
         return others;
     }
+
     public RemoveEntity(entityId: EntityId) {
         if(this._executed) throw Logger.error(`Cannot remove entity "${entityId}", the ECB has already been executed`);
 

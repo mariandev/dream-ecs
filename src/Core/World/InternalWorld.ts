@@ -5,6 +5,7 @@ import {ComponentCtor, ComponentId, ComponentValue} from "../Component";
 
 import * as Stats from "stats.js";
 import {DependencyTree} from "../System/DependencyTree";
+import {AsyncEntityCommandBuffer} from "../Entity/AsyncEntityCommandBuffer";
 
 const stats = new Stats();
 stats.showPanel(0);
@@ -16,6 +17,7 @@ export class InternalWorld implements IWorld {
     private _queries = new Map<QueryHash, Query>();
     private _entitiesByQuery = new Map<QueryHash, ReadonlyArray<EntityId>>();
     private _queriesByComponent = new Map<ComponentId, ReadonlyArray<QueryHash>>();
+    private _asyncEBCs: AsyncEntityCommandBuffer[] = [];
 
     public readonly DependencyTreeForSystems = new DependencyTree<Function>();
 
@@ -73,9 +75,12 @@ export class InternalWorld implements IWorld {
 
         this._queriesSetForRemoveEntity.forEach(query => this.RemoveEntityFromQueryEntityCache(query, entity.Id));
     }
-    public GetEntity(entityId: number): Entity {
+    public GetEntity(entityId: EntityId): Entity {
         return this._entities.get(entityId);
     }
+    public HasEntity(entityId: EntityId) {
+    	return this._entities.has(entityId);
+		}
 
     public CreateQuery(queryConditions: QueryConditions): Query {
         const queryHash = Query.Hash(queryConditions);
@@ -198,6 +203,14 @@ export class InternalWorld implements IWorld {
         return this._queriesHashesSetForAdvanceEntitiesToNextStep;
     }
 
+    public GetAsyncECB() {
+        const aECB = new AsyncEntityCommandBuffer(this);
+
+        this._asyncEBCs.push(aECB);
+
+        return aECB;
+    }
+
     private ExecuteSystems(ecb: EntityCommandBuffer) {
         for(const system of this.DependencyTreeForSystems.OrderedNodes) {
             this._systems.get(system).Execute(ecb);
@@ -214,6 +227,11 @@ export class InternalWorld implements IWorld {
         this.ExecuteSystems(ecb);
 
         ecb.Execute();
+
+        for (const aecb of this._asyncEBCs) {
+            aecb.Execute();
+        }
+        this._asyncEBCs.length = 0;
 
         this.RecalculateEntitiesForQueries(this.AdvanceEntitiesToNextStep());
 

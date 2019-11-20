@@ -1,12 +1,10 @@
-import {Query, QueryConditions} from "./Query";
+import {Query} from "./Query";
 import {InternalWorld} from "../World/InternalWorld";
 import {EntityCommandBuffer} from "../Entity/EntityCommandBuffer";
 import {Entity, EntityId} from "../Entity";
+import {AsyncEntityCommandBuffer} from "../Entity/AsyncEntityCommandBuffer";
 
 type QueryMap = { [query: string]: Query };
-
-type QueryExecute<T extends QueryMap = {}> = (this: System<T>, ecb: EntityCommandBuffer) => void;
-type QueryGetQueries<T extends QueryMap = {}> = () => T;
 
 export abstract class System<T extends QueryMap = {}> {
     public abstract Queries: T;
@@ -33,6 +31,10 @@ export abstract class System<T extends QueryMap = {}> {
     public GetEntity(entityId: EntityId): Entity {
         return this._world.GetEntity(entityId);
     }
+
+    public GetAsyncECB(): AsyncEntityCommandBuffer {
+    	return this._world.GetAsyncECB();
+		}
 
     public abstract Execute(ecb: EntityCommandBuffer);
 }
